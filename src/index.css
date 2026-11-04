@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --font-display: "Archivo", "Inter", system-ui, -apple-system, sans-serif;
+    --font-serif: "Instrument Serif", Georgia, serif;
+    --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  }
+
+  * {
+    box-sizing: border-box;
+    border-color: #1f1f24;
+  }
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #0b0b0c;
+    color: #f2f1ee;
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+  }
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-serif-editorial {
+  font-family: var(--font-serif);
+}
+
+.font-mono-code {
+  font-family: var(--font-mono);
+}
+
+/* Custom sleek brutalist scrollbar matching ArtCraft Launcher */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0b0b0c;
+  border-left: 1px solid #1c1c21;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3a3a44;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5a5a68;
+}
