@@ -51,10 +51,6 @@ export const Titlebar: React.FC<TitlebarProps> = ({
           <span className="font-display font-extrabold tracking-[0.14em] text-[15px] text-[#f4f4f6] group-hover:text-white transition-colors">
             GLORIA
           </span>
-          <span className="text-[#2e2e36] text-xs">|</span>
-          <span className="font-mono-code text-[11px] tracking-[0.2em] text-[#8a8a96] uppercase">
-            CRAFT APP SUITE
-          </span>
         </button>
 
         {/* Mode Switcher Tabs */}

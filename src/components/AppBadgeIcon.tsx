@@ -1,4 +1,9 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import {
+  forgetAppIcon,
+  getAppIconUrl,
+  getCachedAppIconUrl,
+} from "../services/iconService";
 import {
   Sparkles,
   RefreshCw,
@@ -44,6 +49,29 @@ interface AppBadgeIconProps {
   accentColor: string;
   isInstalled?: boolean;
   size?: "sm" | "md" | "lg";
+  /** GitHub repo name; when set, the app's own icon from the repo is shown if found. */
+  repoId?: string;
+}
+
+function useRepoIcon(repoId?: string): [string | null, () => void] {
+  const [url, setUrl] = useState<string | null>(() =>
+    repoId ? getCachedAppIconUrl(repoId) ?? null : null
+  );
+  useEffect(() => {
+    if (!repoId) return;
+    let cancelled = false;
+    getAppIconUrl(repoId).then((resolved) => {
+      if (!cancelled) setUrl(resolved);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [repoId]);
+  const onError = () => {
+    if (repoId) forgetAppIcon(repoId);
+    setUrl(null);
+  };
+  return [url, onError];
 }
 
 export const AppBadgeIcon: React.FC<AppBadgeIconProps> = ({
@@ -51,7 +79,10 @@ export const AppBadgeIcon: React.FC<AppBadgeIconProps> = ({
   accentColor,
   isInstalled = false,
   size = "md",
+  repoId,
 }) => {
+  const [iconUrl, onIconError] = useRepoIcon(repoId);
+
   const dimensions =
     size === "sm"
       ? "w-9 h-9 rounded-[8px]"
@@ -141,6 +172,26 @@ export const AppBadgeIcon: React.FC<AppBadgeIconProps> = ({
         return <Box size={iconSize} strokeWidth={2.2} />;
     }
   };
+
+  if (iconUrl) {
+    // The app's own icon: shown as-is, larger, with no frame or padding.
+    const iconDimensions =
+      size === "sm" ? "w-11 h-11" : size === "lg" ? "w-[72px] h-[72px]" : "w-14 h-14";
+    return (
+      <img
+        src={iconUrl}
+        alt=""
+        draggable={false}
+        onError={onIconError}
+        className={`${iconDimensions} shrink-0 object-contain transition-transform duration-200 group-hover:scale-[1.04]`}
+        style={
+          isInstalled
+            ? { filter: `drop-shadow(0 0 10px ${accentColor}66)` }
+            : undefined
+        }
+      />
+    );
+  }
 
   if (isInstalled) {
     return (

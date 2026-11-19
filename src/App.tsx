@@ -6,9 +6,10 @@ import type {
   InstalledAppRecord,
   ReleaseAssetInfo,
 } from "./types/app";
-import { GLORIA_CATALOG } from "./data/gloriaCatalog";
 import {
   fetchAppReleaseInfo,
+  getCachedSyncedApps,
+  pickPreferredReleaseAsset,
   syncCatalogWithGitHub,
 } from "./services/githubService";
 import {
@@ -36,7 +37,9 @@ import { SettingsModal } from "./components/SettingsModal";
 const GH_TOKEN_STORAGE_KEY = "gloria_launcher_gh_token";
 
 export const App: React.FC = () => {
-  const [apps, setApps] = useState<GloriaAppEntry[]>(GLORIA_CATALOG);
+  const [apps, setApps] = useState<GloriaAppEntry[]>(() => {
+    return getCachedSyncedApps()?.apps || [];
+  });
   const [installedMap, setInstalledMap] = useState<
     Record<string, InstalledAppRecord>
   >({});
@@ -47,13 +50,15 @@ export const App: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<AppCategory | "ALL">(
     "ALL"
   );
-  const [selectedAppId, setSelectedAppId] = useState<string | null>("OmniConvert");
+  const [selectedAppId, setSelectedAppId] = useState<string | null>(null);
   const [drawerApp, setDrawerApp] = useState<GloriaAppEntry | null>(null);
   const [downloadingMap, setDownloadingMap] = useState<
     Record<string, DownloadProgressPayload>
   >({});
-  const [checkedAt, setCheckedAt] = useState<Date>(new Date());
-  const [isSyncing, setIsSyncing] = useState<boolean>(false);
+  const [checkedAt, setCheckedAt] = useState<Date>(() => {
+    return getCachedSyncedApps()?.checkedAt || new Date();
+  });
+  const [isSyncing, setIsSyncing] = useState<boolean>(true);
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const [githubToken, setGithubToken] = useState<string>(() => {
     try {
@@ -77,11 +82,9 @@ export const App: React.FC = () => {
     async (force = false) => {
       setIsSyncing(true);
       try {
-        const [{ apps: syncedApps, checkedAt: syncedTime }, instMap] =
-          await Promise.all([
-            syncCatalogWithGitHub({ force, githubToken }),
-            getInstalledAppsMap(GLORIA_CATALOG),
-          ]);
+        const { apps: syncedApps, checkedAt: syncedTime } =
+          await syncCatalogWithGitHub({ force, githubToken });
+        const instMap = await getInstalledAppsMap(syncedApps);
         setApps(syncedApps);
         setCheckedAt(syncedTime);
         setInstalledMap(instMap);
@@ -155,7 +158,7 @@ export const App: React.FC = () => {
         ...prev,
         [app.id]: record,
       }));
-      showToast(`Installed ${app.displayName} v${version}`);
+      showToast(`Downloaded & started installer for ${app.displayName} v${version}`);
     } catch (err) {
       showToast(
         `Install failed for ${app.displayName}: ${
@@ -193,18 +196,20 @@ export const App: React.FC = () => {
         return;
       }
 
-      // Check if there is a GitHub release binary to install automatically
-      const rel = await fetchAppReleaseInfo(app.id, githubToken);
-      const preferredAsset = rel?.assets.find((a) =>
-        /\.(exe|msi|zip)$/i.test(a.name)
-      );
+      // Use already-synced release assets if present, otherwise fetch latest release
+      let assets = app.releaseAssets;
+      let releaseVersion = app.releaseTag || app.version;
 
-      if (rel && preferredAsset) {
-        await handleInstallSpecificAsset(
-          app,
-          preferredAsset,
-          rel.version || app.version
-        );
+      if (!assets || assets.length === 0) {
+        const rel = await fetchAppReleaseInfo(app.id, githubToken);
+        assets = rel?.assets;
+        releaseVersion = rel?.version || releaseVersion;
+      }
+
+      const preferredAsset = pickPreferredReleaseAsset(assets || []);
+
+      if (preferredAsset) {
+        await handleInstallSpecificAsset(app, preferredAsset, releaseVersion);
       } else {
         // Open the detail drawer so user can inspect README, locate local .exe, or open repo
         setDrawerApp(app);
@@ -385,6 +390,15 @@ export const App: React.FC = () => {
             onRefresh={() => loadData(true)}
           />
 
+          {/* Clicking anywhere that isn't an app card clears the selection */}
+          <div
+            className="flex-1 min-h-0 flex flex-col"
+            onClick={(e) => {
+              if (!(e.target as HTMLElement).closest("[data-app-card]")) {
+                setSelectedAppId(null);
+              }
+            }}
+          >
           {viewMode === "grid" ? (
             <AppGridView
               installedApps={installedApps}
@@ -392,6 +406,7 @@ export const App: React.FC = () => {
               installedMap={installedMap}
               activeAppId={selectedAppId}
               downloadingMap={downloadingMap}
+              isSyncing={isSyncing}
               onSelectApp={(app) => {
                 setSelectedAppId(app.id);
                 setDrawerApp(app);
@@ -409,6 +424,7 @@ export const App: React.FC = () => {
               installedMap={installedMap}
               activeAppId={selectedAppId}
               downloadingMap={downloadingMap}
+              isSyncing={isSyncing}
               sortBy={sortBy}
               onChangeSortBy={setSortBy}
               onSelectApp={(app) => {
@@ -422,6 +438,7 @@ export const App: React.FC = () => {
               }}
             />
           )}
+          </div>
         </>
       ) : (
         <ShowcaseView
@@ -450,7 +467,10 @@ export const App: React.FC = () => {
         installedRecord={drawerApp ? installedMap[drawerApp.id] : undefined}
         downloadProgress={drawerApp ? downloadingMap[drawerApp.id] : undefined}
         githubToken={githubToken}
-        onClose={() => setDrawerApp(null)}
+        onClose={() => {
+          setDrawerApp(null);
+          setSelectedAppId(null);
+        }}
         onPrimaryAction={handlePrimaryAction}
         onInstallSpecificAsset={handleInstallSpecificAsset}
         onUninstallOrUnpin={handleUninstallOrUnpin}

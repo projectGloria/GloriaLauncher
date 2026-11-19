@@ -16,6 +16,7 @@ interface AppTableViewProps {
   installedMap: Record<string, InstalledAppRecord>;
   activeAppId: string | null;
   downloadingMap: Record<string, DownloadProgressPayload>;
+  isSyncing?: boolean;
   sortBy: SortOption;
   onChangeSortBy: (sort: SortOption) => void;
   onSelectApp: (app: GloriaAppEntry) => void;
@@ -29,6 +30,7 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
   installedMap,
   activeAppId,
   downloadingMap,
+  isSyncing,
   sortBy,
   onChangeSortBy,
   onSelectApp,
@@ -109,6 +111,7 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
           return (
             <div
               key={app.id}
+              data-app-card
               onClick={() => onSelectApp(app)}
               style={{
                 backgroundColor: isSelected ? app.surfaceTint : undefined,
@@ -120,6 +123,7 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
               {/* Col 1: App Icon + Two-Tone Title + Subtitle */}
               <div className="col-span-5 flex items-center gap-3.5 pr-4 min-w-0">
                 <AppBadgeIcon
+                  repoId={app.id}
                   iconKey={app.iconKey}
                   accentColor={app.accentColor}
                   isInstalled={isInstalled}
@@ -223,6 +227,23 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
             </div>
           );
         })}
+
+        {combinedApps.length === 0 && (
+          <div className="py-24 text-center flex flex-col items-center justify-center gap-3">
+            {isSyncing ? (
+              <>
+                <Loader2 size={18} className="animate-spin text-[#00f0ff]" />
+                <p className="font-mono-code text-xs tracking-[0.16em] text-[#7c7c88] uppercase">
+                  FETCHING RELEASES FROM @PROJECTGLORIA...
+                </p>
+              </>
+            ) : (
+              <p className="font-mono-code text-xs tracking-[0.16em] text-[#7c7c88] uppercase">
+                NO GLORIA APPS MATCH YOUR FILTER CRITERIA.
+              </p>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

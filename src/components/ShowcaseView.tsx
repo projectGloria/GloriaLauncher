@@ -135,6 +135,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                 className="group flex flex-col items-center p-2.5 bg-[#101013] hover:bg-[#18181d] border border-[#1f1f25] hover:border-[#34343f] transition-all cursor-pointer text-center"
               >
                 <AppBadgeIcon
+                  repoId={app.id}
                   iconKey={app.iconKey}
                   accentColor={app.accentColor}
                   isInstalled={ true }
@@ -198,6 +199,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                   {/* Icon + Big Two-Tone Title */}
                   <div className="flex items-center gap-3.5 mb-4">
                     <AppBadgeIcon
+                      repoId={app.id}
                       iconKey={app.iconKey}
                       accentColor={app.accentColor}
                       isInstalled={true}

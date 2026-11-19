@@ -88,12 +88,22 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
       }
     });
 
-    fetchAppReleaseInfo(app.id, githubToken).then((rel) => {
-      if (!cancelled) {
-        setReleaseData(rel);
-        setLoadingReleases(false);
-      }
-    });
+    if (app.releaseAssets && app.releaseAssets.length > 0) {
+      setReleaseData({
+        version: app.releaseTag || app.version,
+        publishedAt: app.releasePublishedAt || app.updatedAt,
+        notes: app.releaseNotes,
+        assets: app.releaseAssets,
+      });
+      setLoadingReleases(false);
+    } else {
+      fetchAppReleaseInfo(app.id, githubToken).then((rel) => {
+        if (!cancelled) {
+          setReleaseData(rel);
+          setLoadingReleases(false);
+        }
+      });
+    }
 
     return () => {
       cancelled = true;
@@ -141,6 +151,7 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
         <div className="px-6 py-5 border-b border-[#1f1f25] flex items-start justify-between gap-4">
           <div className="flex items-start gap-4 min-w-0">
             <AppBadgeIcon
+              repoId={app.id}
               iconKey={app.iconKey}
               accentColor={app.accentColor}
               isInstalled={true}
@@ -377,7 +388,7 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
                         {asset.name}
                       </div>
                       <div className="font-mono-code text-[10px] text-[#7c7c88] mt-0.5">
-                        {formatByteSize(asset.size)} · v{releaseData.version}
+                        {asset.size > 0 ? `${formatByteSize(asset.size)} · ` : ""}v{releaseData.version}
                       </div>
                     </div>
 

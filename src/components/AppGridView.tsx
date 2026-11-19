@@ -15,6 +15,7 @@ interface AppGridViewProps {
   installedMap: Record<string, InstalledAppRecord>;
   activeAppId: string | null;
   downloadingMap: Record<string, DownloadProgressPayload>;
+  isSyncing?: boolean;
   onSelectApp: (app: GloriaAppEntry) => void;
   onPrimaryAction: (app: GloriaAppEntry, isInstalled: boolean) => void;
   onOpenDetails: (app: GloriaAppEntry) => void;
@@ -26,6 +27,7 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
   installedMap,
   activeAppId,
   downloadingMap,
+  isSyncing,
   onSelectApp,
   onPrimaryAction,
   onOpenDetails,
@@ -52,6 +54,7 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
     return (
       <div
         key={app.id}
+        data-app-card
         onClick={() => onSelectApp(app)}
         style={{
           backgroundColor: isSelected ? app.surfaceTint : undefined,
@@ -99,6 +102,7 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
           {/* Row 2: App Icon + Two-Tone Title + BY GLORIA Badge + Subtitle */}
           <div className="flex items-start gap-3 mb-3.5">
             <AppBadgeIcon
+              repoId={app.id}
               iconKey={app.iconKey}
               accentColor={app.accentColor}
               isInstalled={isInstalledSection}
@@ -238,10 +242,19 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
       )}
 
       {installedApps.length === 0 && availableApps.length === 0 && (
-        <div className="py-24 text-center">
-          <p className="font-mono-code text-xs tracking-[0.16em] text-[#7c7c88] uppercase">
-            NO GLORIA APPS MATCH YOUR FILTER CRITERIA.
-          </p>
+        <div className="py-24 text-center flex flex-col items-center justify-center gap-3">
+          {isSyncing ? (
+            <>
+              <Loader2 size={18} className="animate-spin text-[#00f0ff]" />
+              <p className="font-mono-code text-xs tracking-[0.16em] text-[#7c7c88] uppercase">
+                FETCHING RELEASES FROM @PROJECTGLORIA...
+              </p>
+            </>
+          ) : (
+            <p className="font-mono-code text-xs tracking-[0.16em] text-[#7c7c88] uppercase">
+              NO GLORIA APPS MATCH YOUR FILTER CRITERIA.
+            </p>
+          )}
         </div>
       )}
     </div>

@@ -1,4 +1,8 @@
-import type { InstalledAppRecord, GloriaAppEntry } from "../types/app";
+import type {
+  InstalledAppRecord,
+  GloriaAppEntry,
+  ReleaseAssetInfo,
+} from "../types/app";
 
 const WEB_PINNED_KEY = "gloria_launcher_web_pinned_v1";
 
@@ -79,6 +83,59 @@ export function saveWebPinnedApps(map: Record<string, InstalledAppRecord>): void
     localStorage.setItem(WEB_PINNED_KEY, JSON.stringify(map));
   } catch {
     // Ignore
+  }
+}
+
+export interface NativeRepoRelease {
+  repo: string;
+  tag: string;
+  publishedAt?: string | null;
+  assets: ReleaseAssetInfo[];
+}
+
+export interface NativeRepoSummary {
+  name: string;
+  description?: string | null;
+  language?: string | null;
+  updatedAt?: string | null;
+}
+
+/**
+ * Desktop only: lists public repos from the github.com profile pages. Used when
+ * the REST API refuses (e.g. the 60 req/hr anonymous limit is used up).
+ */
+export async function listPublicReposDesktop(
+  owner: string
+): Promise<NativeRepoSummary[] | null> {
+  if (!isTauriDesktop()) return null;
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+    return await invoke<NativeRepoSummary[]>("list_public_repos", { owner });
+  } catch (err) {
+    console.warn("Failed to invoke list_public_repos:", err);
+    return null;
+  }
+}
+
+/**
+ * Desktop only: returns the repos that have a real GitHub Release (bare git tags
+ * are excluded) together with that release's assets, without using the REST API.
+ * Returns null outside the desktop runtime or if the native call fails.
+ */
+export async function filterReposWithReleasesDesktop(
+  owner: string,
+  repoNames: string[]
+): Promise<NativeRepoRelease[] | null> {
+  if (!isTauriDesktop()) return null;
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+    return await invoke<NativeRepoRelease[]>("filter_repos_with_releases", {
+      owner,
+      repoNames,
+    });
+  } catch (err) {
+    console.warn("Failed to invoke filter_repos_with_releases:", err);
+    return null;
   }
 }
 

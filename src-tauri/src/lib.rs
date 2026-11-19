@@ -1,4 +1,4 @@
-use futures_util::StreamExt;
+use futures_util::stream::{self, StreamExt};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
@@ -6,6 +6,132 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use tauri::{AppHandle, Emitter, Manager};
+
+const GLORIA_ICO_BYTES: &[u8] = include_bytes!("../../Gloria.ico");
+
+#[cfg(target_os = "windows")]
+mod win_shell {
+    use std::ffi::OsStr;
+    use std::fs;
+    use std::os::windows::ffi::OsStrExt;
+    use std::path::Path;
+
+    const FILE_ATTRIBUTE_READONLY: u32 = 0x0000_0001;
+    const FILE_ATTRIBUTE_HIDDEN: u32 = 0x0000_0002;
+    const FILE_ATTRIBUTE_SYSTEM: u32 = 0x0000_0004;
+    const FILE_ATTRIBUTE_NORMAL: u32 = 0x0000_0080;
+    const SHCNE_UPDATEDIR: i32 = 0x0000_1000;
+    const SHCNF_PATHW: u32 = 0x0005;
+    const SW_SHOWNORMAL: i32 = 1;
+
+    #[link(name = "kernel32")]
+    extern "system" {
+        fn SetFileAttributesW(lpFileName: *const u16, dwFileAttributes: u32) -> i32;
+    }
+
+    #[link(name = "shell32")]
+    extern "system" {
+        fn ShellExecuteW(
+            hwnd: isize,
+            lpOperation: *const u16,
+            lpFile: *const u16,
+            lpParameters: *const u16,
+            lpDirectory: *const u16,
+            nShowCmd: i32,
+        ) -> isize;
+        fn SHChangeNotify(
+            wEventId: i32,
+            uFlags: u32,
+            dwItem1: *const u16,
+            dwItem2: *const u16,
+        );
+    }
+
+    fn to_wide(s: &OsStr) -> Vec<u16> {
+        s.encode_wide().chain(std::iter::once(0)).collect()
+    }
+
+    fn set_attrs(path: &Path, attrs: u32) {
+        let wide = to_wide(path.as_os_str());
+        unsafe {
+            SetFileAttributesW(wide.as_ptr(), attrs);
+        }
+    }
+
+    pub fn apply_folder_icon(folder: &Path, ico_bytes: &[u8]) -> Result<(), String> {
+        let ico_path = folder.join("Gloria.ico");
+        let needs_ico_write = match fs::metadata(&ico_path) {
+            Ok(meta) => meta.len() != ico_bytes.len() as u64,
+            Err(_) => true,
+        };
+        if needs_ico_write {
+            if ico_path.exists() {
+                set_attrs(&ico_path, FILE_ATTRIBUTE_NORMAL);
+            }
+            fs::write(&ico_path, ico_bytes)
+                .map_err(|e| format!("Failed to write Gloria.ico: {e}"))?;
+        }
+        set_attrs(&ico_path, FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM);
+
+        let ini_path = folder.join("desktop.ini");
+        let ini_content = "[.ShellClassInfo]\r\nIconResource=Gloria.ico,0\r\nIconFile=Gloria.ico\r\nIconIndex=0\r\n";
+        let needs_ini_write = match fs::read_to_string(&ini_path) {
+            Ok(existing) => existing != ini_content,
+            Err(_) => true,
+        };
+        if needs_ini_write {
+            if ini_path.exists() {
+                set_attrs(&ini_path, FILE_ATTRIBUTE_NORMAL);
+            }
+            fs::write(&ini_path, ini_content)
+                .map_err(|e| format!("Failed to write desktop.ini: {e}"))?;
+        }
+        set_attrs(&ini_path, FILE_ATTRIBUTE_HIDDEN | FILE_ATTRIBUTE_SYSTEM);
+
+        // Windows Explorer only reads desktop.ini when the folder has the Read-Only attribute set.
+        set_attrs(folder, FILE_ATTRIBUTE_READONLY);
+
+        let folder_wide = to_wide(folder.as_os_str());
+        unsafe {
+            SHChangeNotify(
+                SHCNE_UPDATEDIR,
+                SHCNF_PATHW,
+                folder_wide.as_ptr(),
+                std::ptr::null(),
+            );
+        }
+
+        Ok(())
+    }
+
+    pub fn shell_open_path(path: &Path) -> Result<(), String> {
+        let op = to_wide(OsStr::new("open"));
+        let file = to_wide(path.as_os_str());
+        let dir = path
+            .parent()
+            .map(|p| to_wide(p.as_os_str()))
+            .unwrap_or_else(|| to_wide(OsStr::new(".")));
+
+        let result = unsafe {
+            ShellExecuteW(
+                0,
+                op.as_ptr(),
+                file.as_ptr(),
+                std::ptr::null(),
+                dir.as_ptr(),
+                SW_SHOWNORMAL,
+            )
+        };
+
+        if result <= 32 {
+            Err(format!(
+                "Failed to launch installer (ShellExecuteW code {result})"
+            ))
+        } else {
+            Ok(())
+        }
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -43,6 +169,301 @@ fn launcher_root_dir(app: &AppHandle) -> Result<PathBuf, String> {
         .map_err(|e| format!("Failed to resolve local app data dir: {e}"))?;
     fs::create_dir_all(&dir).map_err(|e| format!("Failed to create launcher root dir: {e}"))?;
     Ok(dir)
+}
+
+fn downloads_root_dir(app: &AppHandle) -> Result<PathBuf, String> {
+    let base_downloads = app
+        .path()
+        .download_dir()
+        .ok()
+        .or_else(|| {
+            std::env::var_os("USERPROFILE").map(|p| PathBuf::from(p).join("Downloads"))
+        })
+        .ok_or_else(|| "Failed to resolve system Downloads folder".to_string())?;
+
+    let dir = base_downloads.join("GloriaLauncherDownloads");
+    fs::create_dir_all(&dir)
+        .map_err(|e| format!("Failed to create GloriaLauncherDownloads dir: {e}"))?;
+
+    #[cfg(target_os = "windows")]
+    {
+        if let Err(err) = win_shell::apply_folder_icon(&dir, GLORIA_ICO_BYTES) {
+            eprintln!("Warning: could not apply folder icon to {}: {err}", dir.display());
+        }
+    }
+
+    Ok(dir)
+}
+
+fn launch_path_with_shell(path: &Path) -> Result<(), String> {
+    #[cfg(target_os = "windows")]
+    {
+        win_shell::shell_open_path(path)
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        let working_dir = path.parent().unwrap_or_else(|| Path::new("."));
+        Command::new(path)
+            .current_dir(working_dir)
+            .spawn()
+            .map_err(|e| format!("Failed to spawn process: {e}"))?;
+        Ok(())
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NativeReleaseAsset {
+    pub name: String,
+    pub browser_download_url: String,
+    pub size: u64,
+    pub content_type: String,
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NativeRepoRelease {
+    pub repo: String,
+    pub tag: String,
+    pub published_at: Option<String>,
+    pub assets: Vec<NativeReleaseAsset>,
+}
+
+/// Extracts (tag, updated) pairs from a GitHub releases.atom feed, newest first.
+/// Note: this feed also lists bare git tags that have no GitHub Release attached.
+fn parse_atom_tags(body: &str) -> Vec<(String, Option<String>)> {
+    let mut out = Vec::new();
+    for entry in body.split("<entry>").skip(1) {
+        let Some(idx) = entry.find("/releases/tag/") else {
+            continue;
+        };
+        let rest = &entry[idx + "/releases/tag/".len()..];
+        let Some(end) = rest.find('"') else { continue };
+        let tag = rest[..end].to_string();
+        let updated = entry
+            .find("<updated>")
+            .and_then(|s| {
+                let r = &entry[s + "<updated>".len()..];
+                r.find("</updated>").map(|e| r[..e].to_string())
+            });
+        out.push((tag, updated));
+    }
+    out
+}
+
+/// Parses the asset download links out of GitHub's `releases/expanded_assets/{tag}` HTML.
+/// A bare tag (no Release) renders this page with no `/releases/download/` links.
+fn parse_expanded_assets(body: &str, owner: &str, repo: &str, tag: &str) -> Vec<NativeReleaseAsset> {
+    let prefix = format!("href=\"/{owner}/{repo}/releases/download/{tag}/");
+    let mut seen = std::collections::HashSet::new();
+    let mut assets = Vec::new();
+    let mut cursor = body;
+    while let Some(pos) = cursor.find(&prefix) {
+        let rest = &cursor[pos + prefix.len()..];
+        let Some(end) = rest.find('"') else { break };
+        let encoded_name = &rest[..end];
+        cursor = &rest[end..];
+        if encoded_name.is_empty() || !seen.insert(encoded_name.to_string()) {
+            continue;
+        }
+        let name = percent_decode(encoded_name);
+        assets.push(NativeReleaseAsset {
+            browser_download_url: format!(
+                "https://github.com/{owner}/{repo}/releases/download/{tag}/{encoded_name}"
+            ),
+            name,
+            size: 0,
+            content_type: "application/octet-stream".to_string(),
+        });
+    }
+    assets
+}
+
+fn percent_decode(s: &str) -> String {
+    let bytes = s.as_bytes();
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'%' && i + 2 < bytes.len() {
+            if let Some(v) = std::str::from_utf8(&bytes[i + 1..i + 3])
+                .ok()
+                .and_then(|h| u8::from_str_radix(h, 16).ok())
+            {
+                out.push(v);
+                i += 3;
+                continue;
+            }
+        }
+        out.push(bytes[i]);
+        i += 1;
+    }
+    String::from_utf8_lossy(&out).to_string()
+}
+
+async fn find_latest_release(
+    client: &reqwest::Client,
+    owner: &str,
+    repo: &str,
+) -> Option<NativeRepoRelease> {
+    let feed_url = format!("https://github.com/{owner}/{repo}/releases.atom");
+    let resp = client.get(&feed_url).send().await.ok()?;
+    if !resp.status().is_success() {
+        return None;
+    }
+    let body = resp.text().await.ok()?;
+
+    // Walk the newest few feed entries and keep the first one that is a real
+    // Release (i.e. has downloadable assets), skipping bare git tags.
+    for (tag, updated) in parse_atom_tags(&body).into_iter().take(5) {
+        let url = format!("https://github.com/{owner}/{repo}/releases/expanded_assets/{tag}");
+        let Ok(resp) = client.get(&url).send().await else {
+            continue;
+        };
+        if !resp.status().is_success() {
+            continue;
+        }
+        let Ok(html) = resp.text().await else { continue };
+        let assets = parse_expanded_assets(&html, owner, repo, &tag);
+        if !assets.is_empty() {
+            return Some(NativeRepoRelease {
+                repo: repo.to_string(),
+                tag,
+                published_at: updated,
+                assets,
+            });
+        }
+    }
+    None
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NativeRepoSummary {
+    pub name: String,
+    pub description: Option<String>,
+    pub language: Option<String>,
+    pub updated_at: Option<String>,
+}
+
+fn decode_html_entities(s: &str) -> String {
+    s.replace("&quot;", "\"")
+        .replace("&#39;", "'")
+        .replace("&#x27;", "'")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&amp;", "&")
+}
+
+fn text_between<'a>(haystack: &'a str, start: &str, end: &str) -> Option<&'a str> {
+    let s = haystack.find(start)? + start.len();
+    let rest = &haystack[s..];
+    let e = rest.find(end)?;
+    Some(&rest[..e])
+}
+
+/// Parses one page of `github.com/{owner}?tab=repositories`.
+fn parse_profile_repos(body: &str, owner: &str) -> Vec<NativeRepoSummary> {
+    let marker = "itemprop=\"name codeRepository\"";
+    let href_prefix = format!("<a href=\"/{owner}/");
+    let mut repos = Vec::new();
+    let chunks: Vec<&str> = body.split(marker).collect();
+    for i in 0..chunks.len().saturating_sub(1) {
+        // The repo link opens at the end of chunk i; its details follow in chunk i + 1.
+        let before = chunks[i];
+        let Some(href_pos) = before.rfind(&href_prefix) else {
+            continue;
+        };
+        let name = before[href_pos + href_prefix.len()..]
+            .split('"')
+            .next()
+            .unwrap_or("")
+            .trim()
+            .to_string();
+        if name.is_empty() || name.contains('/') {
+            continue;
+        }
+        let details = chunks[i + 1];
+        let description = text_between(details, "itemprop=\"description\">", "</p>")
+            .map(|d| decode_html_entities(d.trim()))
+            .filter(|d| !d.is_empty());
+        let language = text_between(details, "itemprop=\"programmingLanguage\">", "<")
+            .map(|l| decode_html_entities(l.trim()))
+            .filter(|l| !l.is_empty());
+        let updated_at = text_between(details, "<relative-time datetime=\"", "\"")
+            .map(|d| d.to_string());
+        repos.push(NativeRepoSummary {
+            name,
+            description,
+            language,
+            updated_at,
+        });
+    }
+    repos
+}
+
+/// Lists an account's public repositories from its github.com profile pages.
+/// Used as a fallback when the REST API is rate-limited (60 req/hr unauthenticated).
+#[tauri::command]
+async fn list_public_repos(owner: String) -> Result<Vec<NativeRepoSummary>, String> {
+    let client = reqwest::Client::builder()
+        .user_agent("GloriaLauncher/0.1.0")
+        .build()
+        .map_err(|e| format!("HTTP client error: {e}"))?;
+
+    let mut all = Vec::new();
+    for page in 1..=20 {
+        let url = format!("https://github.com/{owner}?tab=repositories&page={page}");
+        let resp = client
+            .get(&url)
+            .send()
+            .await
+            .map_err(|e| format!("Failed to load repository list: {e}"))?;
+        if !resp.status().is_success() {
+            if all.is_empty() {
+                return Err(format!("Repository list returned HTTP {}", resp.status()));
+            }
+            break;
+        }
+        let body = resp
+            .text()
+            .await
+            .map_err(|e| format!("Failed to read repository list: {e}"))?;
+        let repos = parse_profile_repos(&body, &owner);
+        if repos.is_empty() {
+            break;
+        }
+        all.extend(repos);
+        if !body.contains("rel=\"next\"") {
+            break;
+        }
+    }
+    Ok(all)
+}
+
+/// Returns only repositories that have at least one published GitHub Release
+/// with downloadable assets, along with that latest release's assets.
+/// Uses public github.com pages so it does not consume the REST API quota.
+#[tauri::command]
+async fn filter_repos_with_releases(
+    owner: String,
+    repo_names: Vec<String>,
+) -> Result<Vec<NativeRepoRelease>, String> {
+    let client = reqwest::Client::builder()
+        .user_agent("GloriaLauncher/0.1.0")
+        .build()
+        .map_err(|e| format!("HTTP client error: {e}"))?;
+
+    let results: Vec<Option<NativeRepoRelease>> =
+        stream::iter(repo_names.into_iter().map(|repo| {
+            let client = client.clone();
+            let owner = owner.clone();
+            async move { find_latest_release(&client, &owner, &repo).await }
+        }))
+        .buffer_unordered(12)
+        .collect()
+        .await;
+
+    Ok(results.into_iter().flatten().collect())
 }
 
 fn registry_file_path(app: &AppHandle) -> Result<PathBuf, String> {
@@ -142,11 +563,16 @@ async fn install_app_release(
     download_url: String,
     file_name: String,
 ) -> Result<InstalledAppRecord, String> {
-    let root = launcher_root_dir(&app)?;
-    let app_dir = root.join("apps").join(&app_id);
-    fs::create_dir_all(&app_dir).map_err(|e| format!("Failed to create app dir: {e}"))?;
+    let downloads_dir = downloads_root_dir(&app)?;
+    let safe_file_name = Path::new(&file_name)
+        .file_name()
+        .and_then(|n| n.to_str())
+        .filter(|s| !s.is_empty())
+        .ok_or_else(|| "Invalid release file name".to_string())?
+        .to_string();
 
-    let target_file = app_dir.join(&file_name);
+    let target_file = downloads_dir.join(&safe_file_name);
+    let partial_file = downloads_dir.join(format!("{safe_file_name}.part"));
 
     let client = reqwest::Client::builder()
         .user_agent("GloriaLauncher/0.1.0")
@@ -165,48 +591,103 @@ async fn install_app_release(
 
     let total_bytes = response.content_length().unwrap_or(0);
     let mut downloaded_bytes: u64 = 0;
+    let mut last_emitted_percent: f64 = -1.0;
 
-    let mut file =
-        fs::File::create(&target_file).map_err(|e| format!("Failed to create file: {e}"))?;
-    let mut stream = response.bytes_stream();
+    {
+        let mut file =
+            fs::File::create(&partial_file).map_err(|e| format!("Failed to create file: {e}"))?;
+        let mut stream = response.bytes_stream();
 
-    while let Some(chunk_res) = stream.next().await {
-        let chunk = chunk_res.map_err(|e| format!("Download stream error: {e}"))?;
-        file.write_all(&chunk)
-            .map_err(|e| format!("Disk write error: {e}"))?;
-        downloaded_bytes += chunk.len() as u64;
+        while let Some(chunk_res) = stream.next().await {
+            let chunk = match chunk_res {
+                Ok(c) => c,
+                Err(e) => {
+                    drop(file);
+                    let _ = fs::remove_file(&partial_file);
+                    return Err(format!("Download stream error: {e}"));
+                }
+            };
+            if let Err(e) = file.write_all(&chunk) {
+                drop(file);
+                let _ = fs::remove_file(&partial_file);
+                return Err(format!("Disk write error: {e}"));
+            }
+            downloaded_bytes += chunk.len() as u64;
 
-        let percent = if total_bytes > 0 {
-            ((downloaded_bytes as f64 / total_bytes as f64) * 100.0).min(99.0)
-        } else {
-            50.0
-        };
+            let percent = if total_bytes > 0 {
+                ((downloaded_bytes as f64 / total_bytes as f64) * 100.0).min(99.0)
+            } else {
+                50.0
+            };
 
-        let _ = app.emit(
-            "download-progress",
-            DownloadProgressPayload {
-                app_id: app_id.clone(),
-                downloaded_bytes,
-                total_bytes,
-                percent,
-                status: "Downloading...".to_string(),
-            },
-        );
+            if percent - last_emitted_percent < 1.0 {
+                continue;
+            }
+            last_emitted_percent = percent;
+
+            let _ = app.emit(
+                "download-progress",
+                DownloadProgressPayload {
+                    app_id: app_id.clone(),
+                    downloaded_bytes,
+                    total_bytes,
+                    percent,
+                    status: "Downloading...".to_string(),
+                },
+            );
+        }
+        file.flush().map_err(|e| format!("Flush error: {e}"))?;
     }
-    file.flush().map_err(|e| format!("Flush error: {e}"))?;
 
-    // If the downloaded file is a .zip archive, extract it and find the primary .exe
-    let final_exe_path = if file_name.to_ascii_lowercase().ends_with(".zip") {
-        extract_zip_and_find_exe(&target_file, &app_dir)?
+    if target_file.exists() {
+        fs::remove_file(&target_file).map_err(|e| {
+            format!("Could not replace existing {safe_file_name} (is it still running?): {e}")
+        })?;
+    }
+    fs::rename(&partial_file, &target_file)
+        .map_err(|e| format!("Failed to finalize download: {e}"))?;
+
+    let _ = app.emit(
+        "download-progress",
+        DownloadProgressPayload {
+            app_id: app_id.clone(),
+            downloaded_bytes,
+            total_bytes: total_bytes.max(downloaded_bytes),
+            percent: 100.0,
+            status: "Starting installer...".to_string(),
+        },
+    );
+
+    let lower_name = safe_file_name.to_ascii_lowercase();
+    let (final_exe_path, install_dir) = if lower_name.ends_with(".zip") {
+        let extract_dir = downloads_dir.join(&app_id);
+        fs::create_dir_all(&extract_dir)
+            .map_err(|e| format!("Failed to create extract dir: {e}"))?;
+        if let Some(found_installer) = extract_zip_and_find_installer(&target_file, &extract_dir)? {
+            launch_path_with_shell(&found_installer)?;
+            (found_installer, extract_dir)
+        } else {
+            let _ = Command::new("explorer").arg(&extract_dir).spawn();
+            (target_file.clone(), extract_dir)
+        }
+    } else if lower_name.ends_with(".exe") || lower_name.ends_with(".msi") {
+        launch_path_with_shell(&target_file)?;
+        (target_file.clone(), downloads_dir.clone())
     } else {
-        target_file.clone()
+        #[cfg(target_os = "windows")]
+        {
+            let _ = Command::new("explorer")
+                .arg(format!("/select,{}", target_file.display()))
+                .spawn();
+        }
+        (target_file.clone(), downloads_dir.clone())
     };
 
     let record = InstalledAppRecord {
         app_id: app_id.clone(),
         version,
         executable_path: final_exe_path.to_string_lossy().to_string(),
-        install_dir: app_dir.to_string_lossy().to_string(),
+        install_dir: install_dir.to_string_lossy().to_string(),
         installed_at: "Installed via GloriaLauncher".to_string(),
         source: "github-release".to_string(),
     };
@@ -218,11 +699,15 @@ async fn install_app_release(
     Ok(record)
 }
 
-fn extract_zip_and_find_exe(zip_path: &Path, dest_dir: &Path) -> Result<PathBuf, String> {
+fn extract_zip_and_find_installer(
+    zip_path: &Path,
+    dest_dir: &Path,
+) -> Result<Option<PathBuf>, String> {
     let file = fs::File::open(zip_path).map_err(|e| format!("Failed to open zip: {e}"))?;
     let mut archive =
         zip::ZipArchive::new(file).map_err(|e| format!("Invalid zip archive: {e}"))?;
 
+    let mut preferred_installer: Option<PathBuf> = None;
     let mut first_exe: Option<PathBuf> = None;
 
     for i in 0..archive.len() {
@@ -245,19 +730,32 @@ fn extract_zip_and_find_exe(zip_path: &Path, dest_dir: &Path) -> Result<PathBuf,
             std::io::copy(&mut entry, &mut outfile)
                 .map_err(|e| format!("Failed to write extracted file: {e}"))?;
 
-            if out_path
+            let ext = out_path
                 .extension()
                 .and_then(|e| e.to_str())
-                .map(|ext| ext.eq_ignore_ascii_case("exe"))
-                .unwrap_or(false)
-                && first_exe.is_none()
-            {
-                first_exe = Some(out_path);
+                .map(|s| s.to_ascii_lowercase());
+            let name_lower = out_path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .map(|s| s.to_ascii_lowercase())
+                .unwrap_or_default();
+
+            if matches!(ext.as_deref(), Some("exe" | "msi")) {
+                if preferred_installer.is_none()
+                    && (ext.as_deref() == Some("msi")
+                        || name_lower.contains("setup")
+                        || name_lower.contains("install"))
+                {
+                    preferred_installer = Some(out_path.clone());
+                }
+                if first_exe.is_none() {
+                    first_exe = Some(out_path);
+                }
             }
         }
     }
 
-    Ok(first_exe.unwrap_or_else(|| zip_path.to_path_buf()))
+    Ok(preferred_installer.or(first_exe))
 }
 
 #[tauri::command]
@@ -306,13 +804,7 @@ fn launch_installed_app(app: AppHandle, app_id: String) -> Result<(), String> {
         ));
     }
 
-    let working_dir = exe_path.parent().unwrap_or_else(|| Path::new("."));
-    Command::new(exe_path)
-        .current_dir(working_dir)
-        .spawn()
-        .map_err(|e| format!("Failed to spawn process: {e}"))?;
-
-    Ok(())
+    launch_path_with_shell(exe_path)
 }
 
 #[tauri::command]
@@ -321,7 +813,18 @@ fn uninstall_app(app: AppHandle, app_id: String) -> Result<(), String> {
     if let Some(record) = reg.remove(&app_id) {
         if record.source == "github-release" {
             let dir_path = Path::new(&record.install_dir);
-            if dir_path.exists() {
+            let is_shared_downloads = dir_path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .map(|s| s.eq_ignore_ascii_case("GloriaLauncherDownloads"))
+                .unwrap_or(false);
+
+            if is_shared_downloads {
+                let exe_path = Path::new(&record.executable_path);
+                if exe_path.is_file() {
+                    let _ = fs::remove_file(exe_path);
+                }
+            } else if dir_path.exists() {
                 let _ = fs::remove_dir_all(dir_path);
             }
         }
@@ -354,6 +857,8 @@ pub fn run() {
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
             get_installed_apps,
+            filter_repos_with_releases,
+            list_public_repos,
             install_app_release,
             register_custom_executable,
             launch_installed_app,
@@ -362,4 +867,78 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running GloriaLauncher");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn parses_atom_tags() {
+        let body = r#"<feed><entry><id>x</id><updated>2026-01-02T00:00:00Z</updated>
+<link rel="alternate" type="text/html" href="https://github.com/o/r/releases/tag/v1.2.0"/></entry>
+<entry><link rel="alternate" href="https://github.com/o/r/releases/tag/v1.1.0"/></entry></feed>"#;
+        let tags = parse_atom_tags(body);
+        assert_eq!(tags.len(), 2);
+        assert_eq!(tags[0].0, "v1.2.0");
+        assert_eq!(tags[0].1.as_deref(), Some("2026-01-02T00:00:00Z"));
+        assert_eq!(tags[1].0, "v1.1.0");
+    }
+
+    #[test]
+    fn parses_expanded_assets_and_dedupes() {
+        let html = r#"<a href="/o/r/releases/download/v1/My%20App-Setup.exe">x</a>
+<a href="/o/r/releases/download/v1/My%20App-Setup.exe">dup</a>
+<a href="/o/r/archive/refs/tags/v1.zip">source</a>"#;
+        let assets = parse_expanded_assets(html, "o", "r", "v1");
+        assert_eq!(assets.len(), 1);
+        assert_eq!(assets[0].name, "My App-Setup.exe");
+        assert!(assets[0].browser_download_url.ends_with("/v1/My%20App-Setup.exe"));
+        assert!(parse_expanded_assets("<div></div>", "o", "r", "v1").is_empty());
+    }
+
+    #[tokio::test]
+    #[ignore = "hits github.com"]
+    async fn live_list_public_repos() {
+        let repos = list_public_repos("projectGloria".into()).await.unwrap();
+        println!("{} repos; first: {:?}", repos.len(), repos.first());
+        assert!(repos.len() > 30, "expected multiple pages, got {}", repos.len());
+        assert!(repos.iter().any(|r| r.name == "Mutatio"));
+        assert!(repos.iter().all(|r| !r.name.is_empty() && !r.name.contains('/')));
+
+        let names = repos.into_iter().map(|r| r.name).collect();
+        let mut found: Vec<String> = filter_repos_with_releases("projectGloria".into(), names)
+            .await
+            .unwrap()
+            .into_iter()
+            .map(|r| r.repo)
+            .collect();
+        found.sort();
+        println!("with releases: {found:?}");
+        for must in ["Bonjorno", "CS2Prac", "Mutatio", "Orca", "Wallupus", "devCleanup"] {
+            assert!(found.iter().any(|n| n == must), "{must} missing from {found:?}");
+        }
+        assert!(!found.iter().any(|n| n == "Emissa" || n == "Simulacrum" || n == "React"));
+    }
+
+    #[tokio::test]
+    #[ignore = "hits github.com"]
+    async fn live_filter_projectgloria() {
+        let repos = ["Draco", "Simulacrum", "Emissa", "devCleanup", "Mutatio", "CS2Prac", "React"]
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
+        let mut found = filter_repos_with_releases("projectGloria".into(), repos).await.unwrap();
+        found.sort_by(|a, b| a.repo.cmp(&b.repo));
+        for f in &found {
+            println!("{} {} {:?}", f.repo, f.tag, f.assets.iter().map(|a| &a.name).collect::<Vec<_>>());
+        }
+        let names: Vec<_> = found.iter().map(|f| f.repo.as_str()).collect();
+        for must in ["CS2Prac", "Mutatio", "devCleanup"] {
+            assert!(names.contains(&must), "{must} missing from {names:?}");
+        }
+        for never in ["Simulacrum", "Emissa", "React"] {
+            assert!(!names.contains(&never), "{never} has no release but was returned");
+        }
+    }
 }
