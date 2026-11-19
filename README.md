@@ -51,7 +51,7 @@ On Windows, the Tauri v2 + Rust backend streams release installers directly into
 
 <p align="center">
   <img src="docs/assets/launcher-grid.png" alt="GloriaLauncher Grid View showing installed apps at the top and available apps in a 5-column grid" width="880" />
-  <br /><em>Launcher Grid View: installed apps pinned at the top, followed by available @projectGloria releases with category filters, search, and sorting.</em>
+  <br /><em>Launcher Grid View: 5-column release grid with category filters, search, sorting, and one-click install actions.</em>
 </p>
 
 <p align="center">
