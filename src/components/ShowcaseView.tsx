@@ -118,9 +118,8 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
           <Sparkles size={13} className="text-[#dc143c] shrink-0" />
           <span>
             <strong className="text-[#f2f1ee]">Recommended:</strong>{" "}
-            GloriaLauncher runs both right here in your browser (GitHub Pages)
-            and as a native Windows desktop app that installs and launches every
-            tool below.
+            GloriaLauncher runs as a native Windows desktop app that installs
+            and launches every tool below, and can also be built for the web.
           </span>
         </div>
 
