@@ -406,7 +406,7 @@ fn parse_profile_repos(body: &str, owner: &str) -> Vec<NativeRepoSummary> {
 #[tauri::command]
 async fn list_public_repos(owner: String) -> Result<Vec<NativeRepoSummary>, String> {
     let client = reqwest::Client::builder()
-        .user_agent("GloriaLauncher/0.1.0")
+        .user_agent(USER_AGENT)
         .build()
         .map_err(|e| format!("HTTP client error: {e}"))?;
 
@@ -449,7 +449,7 @@ async fn filter_repos_with_releases(
     repo_names: Vec<String>,
 ) -> Result<Vec<NativeRepoRelease>, String> {
     let client = reqwest::Client::builder()
-        .user_agent("GloriaLauncher/0.1.0")
+        .user_agent(USER_AGENT)
         .build()
         .map_err(|e| format!("HTTP client error: {e}"))?;
 
@@ -555,32 +555,36 @@ fn get_installed_apps(
     Ok(reg.into_values().collect())
 }
 
-#[tauri::command]
-async fn install_app_release(
-    app: AppHandle,
-    app_id: String,
-    version: String,
-    download_url: String,
-    file_name: String,
-) -> Result<InstalledAppRecord, String> {
-    let downloads_dir = downloads_root_dir(&app)?;
-    let safe_file_name = Path::new(&file_name)
+const USER_AGENT: &str = concat!("GloriaLauncher/", env!("CARGO_PKG_VERSION"));
+const GITHUB_OWNER: &str = "projectGloria";
+const LAUNCHER_REPO: &str = "GloriaLauncher";
+/// Progress events for the launcher's own update use this id.
+const LAUNCHER_PROGRESS_ID: &str = "__launcher__";
+
+fn http_client() -> Result<reqwest::Client, String> {
+    reqwest::Client::builder()
+        .user_agent(USER_AGENT)
+        .build()
+        .map_err(|e| format!("HTTP client error: {e}"))
+}
+
+/// Downloads `url` into `target_file` (via a `.part` file), emitting
+/// `download-progress` events tagged with `progress_id`.
+async fn download_with_progress(
+    app: &AppHandle,
+    progress_id: &str,
+    url: &str,
+    target_file: &Path,
+) -> Result<(), String> {
+    let file_label = target_file
         .file_name()
         .and_then(|n| n.to_str())
-        .filter(|s| !s.is_empty())
-        .ok_or_else(|| "Invalid release file name".to_string())?
+        .unwrap_or("file")
         .to_string();
+    let partial_file = target_file.with_file_name(format!("{file_label}.part"));
 
-    let target_file = downloads_dir.join(&safe_file_name);
-    let partial_file = downloads_dir.join(format!("{safe_file_name}.part"));
-
-    let client = reqwest::Client::builder()
-        .user_agent("GloriaLauncher/0.1.0")
-        .build()
-        .map_err(|e| format!("HTTP client error: {e}"))?;
-
-    let response = client
-        .get(&download_url)
+    let response = http_client()?
+        .get(url)
         .send()
         .await
         .map_err(|e| format!("Download request failed: {e}"))?;
@@ -628,7 +632,7 @@ async fn install_app_release(
             let _ = app.emit(
                 "download-progress",
                 DownloadProgressPayload {
-                    app_id: app_id.clone(),
+                    app_id: progress_id.to_string(),
                     downloaded_bytes,
                     total_bytes,
                     percent,
@@ -640,23 +644,144 @@ async fn install_app_release(
     }
 
     if target_file.exists() {
-        fs::remove_file(&target_file).map_err(|e| {
-            format!("Could not replace existing {safe_file_name} (is it still running?): {e}")
+        fs::remove_file(target_file).map_err(|e| {
+            format!("Could not replace existing {file_label} (is it still running?): {e}")
         })?;
     }
-    fs::rename(&partial_file, &target_file)
+    fs::rename(&partial_file, target_file)
         .map_err(|e| format!("Failed to finalize download: {e}"))?;
 
     let _ = app.emit(
         "download-progress",
         DownloadProgressPayload {
-            app_id: app_id.clone(),
+            app_id: progress_id.to_string(),
             downloaded_bytes,
             total_bytes: total_bytes.max(downloaded_bytes),
             percent: 100.0,
             status: "Starting installer...".to_string(),
         },
     );
+    Ok(())
+}
+
+/// Parses "v1.2.3" / "1.2.3-beta" into comparable numeric parts.
+fn parse_version(v: &str) -> Vec<u64> {
+    v.trim()
+        .trim_start_matches(['v', 'V'])
+        .split(['-', '+'])
+        .next()
+        .unwrap_or("")
+        .split('.')
+        .map(|p| p.parse::<u64>().unwrap_or(0))
+        .collect()
+}
+
+fn is_newer_version(latest: &str, current: &str) -> bool {
+    let (mut a, mut b) = (parse_version(latest), parse_version(current));
+    let len = a.len().max(b.len());
+    a.resize(len, 0);
+    b.resize(len, 0);
+    a > b
+}
+
+/// Picks the installer to use for a launcher update: NSIS setup.exe first, then .msi.
+fn pick_launcher_installer(assets: &[NativeReleaseAsset]) -> Option<&NativeReleaseAsset> {
+    let lower = |a: &NativeReleaseAsset| a.name.to_ascii_lowercase();
+    assets
+        .iter()
+        .find(|a| lower(a).ends_with("-setup.exe"))
+        .or_else(|| assets.iter().find(|a| lower(a).ends_with(".exe")))
+        .or_else(|| assets.iter().find(|a| lower(a).ends_with(".msi")))
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LauncherUpdateInfo {
+    pub current_version: String,
+    pub latest_version: String,
+    pub published_at: Option<String>,
+    pub release_url: String,
+    pub download_url: String,
+    pub file_name: String,
+}
+
+/// Returns the newer GloriaLauncher release, or `None` when this build is up to date.
+#[tauri::command]
+async fn check_launcher_update(app: AppHandle) -> Result<Option<LauncherUpdateInfo>, String> {
+    let current = app.package_info().version.to_string();
+    let client = http_client()?;
+    let Some(release) = find_latest_release(&client, GITHUB_OWNER, LAUNCHER_REPO).await else {
+        return Ok(None);
+    };
+    if !is_newer_version(&release.tag, &current) {
+        return Ok(None);
+    }
+    let Some(asset) = pick_launcher_installer(&release.assets) else {
+        return Ok(None);
+    };
+    Ok(Some(LauncherUpdateInfo {
+        current_version: current,
+        latest_version: release.tag.trim_start_matches(['v', 'V']).to_string(),
+        published_at: release.published_at.clone(),
+        release_url: format!(
+            "https://github.com/{GITHUB_OWNER}/{LAUNCHER_REPO}/releases/tag/{}",
+            release.tag
+        ),
+        download_url: asset.browser_download_url.clone(),
+        file_name: asset.name.clone(),
+    }))
+}
+
+/// Downloads the launcher installer, starts it, then exits so the installer
+/// can replace the running executable.
+#[tauri::command]
+async fn install_launcher_update(
+    app: AppHandle,
+    download_url: String,
+    file_name: String,
+) -> Result<(), String> {
+    let prefix = format!("https://github.com/{GITHUB_OWNER}/{LAUNCHER_REPO}/releases/download/");
+    if !download_url.starts_with(&prefix) {
+        return Err("Refusing to download a launcher update from an unexpected URL.".to_string());
+    }
+    let safe_file_name = Path::new(&file_name)
+        .file_name()
+        .and_then(|n| n.to_str())
+        .filter(|s| !s.is_empty())
+        .ok_or_else(|| "Invalid installer file name".to_string())?
+        .to_string();
+
+    let dir = std::env::temp_dir().join("GloriaLauncherUpdate");
+    fs::create_dir_all(&dir).map_err(|e| format!("Failed to create update dir: {e}"))?;
+    let target_file = dir.join(&safe_file_name);
+
+    download_with_progress(&app, LAUNCHER_PROGRESS_ID, &download_url, &target_file).await?;
+    launch_path_with_shell(&target_file)?;
+
+    // Give the installer a moment to start, then close so files aren't locked.
+    tokio::time::sleep(std::time::Duration::from_millis(1500)).await;
+    app.exit(0);
+    Ok(())
+}
+
+#[tauri::command]
+async fn install_app_release(
+    app: AppHandle,
+    app_id: String,
+    version: String,
+    download_url: String,
+    file_name: String,
+) -> Result<InstalledAppRecord, String> {
+    let downloads_dir = downloads_root_dir(&app)?;
+    let safe_file_name = Path::new(&file_name)
+        .file_name()
+        .and_then(|n| n.to_str())
+        .filter(|s| !s.is_empty())
+        .ok_or_else(|| "Invalid release file name".to_string())?
+        .to_string();
+
+    let target_file = downloads_dir.join(&safe_file_name);
+    download_with_progress(&app, &app_id, &download_url, &target_file).await?;
 
     let lower_name = safe_file_name.to_ascii_lowercase();
     let (final_exe_path, install_dir) = if lower_name.ends_with(".zip") {
@@ -863,7 +988,9 @@ pub fn run() {
             register_custom_executable,
             launch_installed_app,
             uninstall_app,
-            open_install_folder
+            open_install_folder,
+            check_launcher_update,
+            install_launcher_update
         ])
         .run(tauri::generate_context!())
         .expect("error while running GloriaLauncher");
@@ -872,6 +999,34 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn compares_versions() {
+        assert!(is_newer_version("v1.0.1", "1.0.0"));
+        assert!(is_newer_version("1.10.0", "1.9.9"));
+        assert!(is_newer_version("v2", "1.9.9"));
+        assert!(!is_newer_version("v1.0.0", "1.0.0"));
+        assert!(!is_newer_version("v0.2.0", "1.0.0"));
+        assert!(!is_newer_version("1.0.0-beta", "1.0.0"));
+    }
+
+    #[test]
+    fn picks_setup_exe_over_msi() {
+        let asset = |name: &str| NativeReleaseAsset {
+            name: name.to_string(),
+            browser_download_url: String::new(),
+            size: 0,
+            content_type: String::new(),
+        };
+        let assets = vec![
+            asset("GloriaLauncher_1.0.0_x64_en-US.msi"),
+            asset("GloriaLauncher_1.0.0_x64-setup.exe"),
+        ];
+        assert_eq!(
+            pick_launcher_installer(&assets).unwrap().name,
+            "GloriaLauncher_1.0.0_x64-setup.exe"
+        );
+    }
 
     #[test]
     fn parses_atom_tags() {
@@ -895,6 +1050,18 @@ mod tests {
         assert_eq!(assets[0].name, "My App-Setup.exe");
         assert!(assets[0].browser_download_url.ends_with("/v1/My%20App-Setup.exe"));
         assert!(parse_expanded_assets("<div></div>", "o", "r", "v1").is_empty());
+    }
+
+    #[tokio::test]
+    #[ignore = "hits github.com"]
+    async fn live_finds_launcher_release() {
+        let client = http_client().unwrap();
+        let release = find_latest_release(&client, GITHUB_OWNER, LAUNCHER_REPO)
+            .await
+            .expect("GloriaLauncher should have a release");
+        let installer = pick_launcher_installer(&release.assets).expect("installer asset");
+        println!("latest {} -> {}", release.tag, installer.browser_download_url);
+        assert!(is_newer_version(&release.tag, "0.2.0"));
     }
 
     #[tokio::test]

@@ -33,6 +33,7 @@ import { ShowcaseView } from "./components/ShowcaseView";
 import { AppDetailDrawer } from "./components/AppDetailDrawer";
 import { FooterBar } from "./components/FooterBar";
 import { SettingsModal } from "./components/SettingsModal";
+import { UpdateBanner } from "./components/UpdateBanner";
 import { useTranslation } from "react-i18next";
 import { localizeApp } from "./i18n";
 import { useIconPalettes } from "./services/iconColorService";
@@ -121,8 +122,10 @@ export const App: React.FC = () => {
     [githubToken]
   );
 
+  // The cached catalog is already on screen from the initial state; always
+  // re-check on launch so newly published apps show up right away.
   useEffect(() => {
-    loadData(false);
+    loadData(true);
   }, [loadData]);
 
   // Listen to Tauri download progress events when running in Desktop runtime
@@ -393,6 +396,7 @@ export const App: React.FC = () => {
         totalAppsCount={apps.length}
         installedCount={Object.keys(installedMap).length}
       />
+      <UpdateBanner onError={showToast} />
 
       {/* Main Content Area */}
       {activeMode === "launcher" ? (

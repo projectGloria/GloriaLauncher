@@ -196,5 +196,13 @@
     "rescanned": "Ejecutables del espacio de trabajo analizados de nuevo",
     "resetPinned": "Apps fijadas restablecidas",
     "exeLinked": "Ejecutable local vinculado a {{name}}"
+  },
+  "update": {
+    "available": "GloriaLauncher v{{latest}} está disponible — tienes la v{{current}}.",
+    "install": "Actualizar ahora",
+    "whatsNew": "Novedades",
+    "later": "Recordar más tarde",
+    "starting": "Iniciando…",
+    "failed": "Error al actualizar: {{error}}"
   }
 }

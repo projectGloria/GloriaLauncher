@@ -195,5 +195,13 @@
     "rescanned": "Çalışma alanındaki uygulamalar yeniden tarandı",
     "resetPinned": "Sabitlenen uygulamalar sıfırlandı",
     "exeLinked": "{{name}} için yerel dosya bağlandı"
+  },
+  "update": {
+    "available": "GloriaLauncher v{{latest}} yayında — sizdeki sürüm v{{current}}.",
+    "install": "Şimdi güncelle",
+    "whatsNew": "Yenilikler",
+    "later": "Daha sonra hatırlat",
+    "starting": "Başlatılıyor…",
+    "failed": "Güncelleme başarısız: {{error}}"
   }
 }

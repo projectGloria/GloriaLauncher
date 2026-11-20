@@ -377,7 +377,10 @@ interface CatalogSnapshot {
  * Loads the catalog snapshot generated in CI. It costs zero GitHub API quota, so
  * it works for anonymous visitors even when api.github.com rate-limits their IP.
  */
-async function fetchCatalogSnapshot(): Promise<GloriaAppEntry[] | null> {
+async function fetchCatalogSnapshot(): Promise<{
+  apps: GloriaAppEntry[];
+  generatedAt: string;
+} | null> {
   const candidates = [
     `${import.meta.env.BASE_URL}catalog.json`,
     HOSTED_SNAPSHOT_URL,
@@ -388,15 +391,60 @@ async function fetchCatalogSnapshot(): Promise<GloriaAppEntry[] | null> {
       if (!res.ok) continue;
       const snap = (await res.json()) as CatalogSnapshot;
       if (!Array.isArray(snap.repos) || snap.repos.length === 0) continue;
-      return snap.repos.map((repo) => {
+      const apps = snap.repos.map((repo) => {
         cacheReleaseData(repo.name, repo.release);
         return buildAppEntry(repo, repo.release);
       });
+      return { apps, generatedAt: snap.generatedAt };
     } catch {
       // Try the next candidate
     }
   }
   return null;
+}
+
+/** Most release lookups spent on top of a snapshot (anonymous quota is 60/hr). */
+const MAX_FRESHNESS_LOOKUPS = 8;
+
+/**
+ * The snapshot is rebuilt periodically in CI, so a release published since then
+ * would be missing. One repo-list request finds repos changed after the snapshot
+ * was generated; only those get a release lookup. Any API failure (e.g. rate
+ * limit) just keeps the snapshot as-is.
+ */
+async function addReleasesNewerThanSnapshot(
+  snapApps: GloriaAppEntry[],
+  generatedAt: string,
+  githubToken?: string
+): Promise<GloriaAppEntry[]> {
+  const snapTime = Date.parse(generatedAt);
+  if (Number.isNaN(snapTime)) return snapApps;
+  try {
+    const res = await fetch(
+      `https://api.github.com/users/${GITHUB_OWNER}/repos?per_page=100&sort=pushed`,
+      { headers: getAuthHeaders(githubToken) }
+    );
+    if (!res.ok) return snapApps;
+    const repos = (await res.json()) as GitHubRepoResponse[];
+    const changed = repos
+      .filter((r) => r.name.toLowerCase() !== "glorialauncher")
+      .filter(
+        (r) =>
+          Math.max(Date.parse(r.pushed_at) || 0, Date.parse(r.updated_at) || 0) > snapTime
+      )
+      .slice(0, MAX_FRESHNESS_LOOKUPS);
+    if (changed.length === 0) return snapApps;
+
+    const byId = new Map(snapApps.map((app) => [app.id.toLowerCase(), app]));
+    for (const repo of changed) {
+      const rel = await fetchLatestReleaseRecord(repo.name, githubToken);
+      if (rel.status === 403 || rel.status === 429) break;
+      if (rel.data) byId.set(repo.name.toLowerCase(), buildAppEntry(repo, rel.data));
+    }
+    return [...byId.values()];
+  } catch {
+    return snapApps;
+  }
 }
 
 function persistSyncedApps(apps: GloriaAppEntry[]): Date {
@@ -523,9 +571,10 @@ export async function syncCatalogWithGitHub(
 
   // 2. Web without a token: the CI-built snapshot needs no API quota at all.
   if (!token && !isTauriDesktop()) {
-    const snapApps = await fetchCatalogSnapshot();
-    if (snapApps) {
-      return { apps: snapApps, checkedAt: persistSyncedApps(snapApps), fromCache: false };
+    const snap = await fetchCatalogSnapshot();
+    if (snap) {
+      const apps = await addReleasesNewerThanSnapshot(snap.apps, snap.generatedAt);
+      return { apps, checkedAt: persistSyncedApps(apps), fromCache: false };
     }
   }
 
@@ -540,9 +589,10 @@ export async function syncCatalogWithGitHub(
   }
 
   // 4. Desktop (or token) fallback to the hosted snapshot.
-  const snapApps = await fetchCatalogSnapshot();
-  if (snapApps) {
-    return { apps: snapApps, checkedAt: persistSyncedApps(snapApps), fromCache: false };
+  const snap = await fetchCatalogSnapshot();
+  if (snap) {
+    const apps = await addReleasesNewerThanSnapshot(snap.apps, snap.generatedAt, token);
+    return { apps, checkedAt: persistSyncedApps(apps), fromCache: false };
   }
 
   const cached = getCachedSyncedApps();

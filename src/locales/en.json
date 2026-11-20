@@ -195,5 +195,13 @@
     "rescanned": "Rescanned local workspace executables",
     "resetPinned": "Reset default pinned apps",
     "exeLinked": "Linked local executable for {{name}}"
+  },
+  "update": {
+    "available": "GloriaLauncher v{{latest}} is available — you have v{{current}}.",
+    "install": "Update now",
+    "whatsNew": "What's new",
+    "later": "Remind me later",
+    "starting": "Starting…",
+    "failed": "Update failed: {{error}}"
   }
 }

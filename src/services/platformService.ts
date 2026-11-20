@@ -180,6 +180,39 @@ export async function uninstallDesktopApp(appId: string): Promise<void> {
   await invoke("uninstall_app", { appId });
 }
 
+/** Progress events for the launcher's own update carry this appId. */
+export const LAUNCHER_UPDATE_PROGRESS_ID = "__launcher__";
+
+export interface LauncherUpdateInfo {
+  currentVersion: string;
+  latestVersion: string;
+  publishedAt?: string | null;
+  releaseUrl: string;
+  downloadUrl: string;
+  fileName: string;
+}
+
+/** Returns the newer GloriaLauncher release, or null when up to date (or on web). */
+export async function checkLauncherUpdate(): Promise<LauncherUpdateInfo | null> {
+  if (!isTauriDesktop()) return null;
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+    return await invoke<LauncherUpdateInfo | null>("check_launcher_update");
+  } catch (err) {
+    console.warn("Failed to check for launcher updates:", err);
+    return null;
+  }
+}
+
+/** Downloads and starts the new launcher installer; the app then closes itself. */
+export async function installLauncherUpdate(update: LauncherUpdateInfo): Promise<void> {
+  const { invoke } = await import("@tauri-apps/api/core");
+  await invoke("install_launcher_update", {
+    downloadUrl: update.downloadUrl,
+    fileName: update.fileName,
+  });
+}
+
 export async function openAppInstallFolder(appId: string): Promise<void> {
   const { invoke } = await import("@tauri-apps/api/core");
   await invoke("open_install_folder", { appId });

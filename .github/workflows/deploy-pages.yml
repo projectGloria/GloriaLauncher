@@ -7,7 +7,7 @@ on:
   # Rebuild the app catalog snapshot so newly published releases show up
   # without needing a push to this repository.
   schedule:
-    - cron: "17 */3 * * *"
+    - cron: "17 * * * *"
   # Lets other projectGloria repos trigger a refresh right after they release.
   repository_dispatch:
     types: [refresh-catalog]
