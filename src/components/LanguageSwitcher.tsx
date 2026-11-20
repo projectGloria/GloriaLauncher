@@ -15,6 +15,27 @@ export const LanguageFlag: React.FC<{ code: LanguageCode; className?: string }> 
   code,
   className = "w-[18px] h-3",
 }) => {
+  if (code === "es") {
+    return (
+      <svg viewBox="0 0 3 2" className={className} aria-hidden="true">
+        <rect width="3" height="2" fill="#AA151B" />
+        <rect y="0.5" width="3" height="1" fill="#F1BF00" />
+      </svg>
+    );
+  }
+  if (code === "tr") {
+    return (
+      <svg viewBox="0 0 1200 800" className={className} aria-hidden="true">
+        <rect width="1200" height="800" fill="#E30A17" />
+        <circle cx="425" cy="400" r="200" fill="#fff" />
+        <circle cx="475" cy="400" r="160" fill="#E30A17" />
+        <polygon
+          fill="#fff"
+          points="583.334,400 764.235,458.779 652.431,304.894 652.431,495.106 764.235,341.221"
+        />
+      </svg>
+    );
+  }
   if (code === "fr") {
     return (
       <svg viewBox="0 0 3 2" className={className} aria-hidden="true">

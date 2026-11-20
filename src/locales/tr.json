@@ -1,0 +1,199 @@
+{
+  "titlebar": {
+    "launcher": "Başlatıcı",
+    "showcase": "Katalog ve vitrin",
+    "getDesktop": "Masaüstü uygulaması",
+    "downloadNativeTooltip": "Windows için yerel GloriaLauncher'ı indir",
+    "githubTooltip": "GitHub'da @projectGloria'yı aç",
+    "language": "Dil",
+    "settingsTooltip": "Başlatıcı ayarları",
+    "minimize": "Simge durumuna küçült",
+    "maximize": "Ekranı kapla",
+    "close": "Kapat"
+  },
+  "toolbar": {
+    "refreshTooltip": "Kataloğu ve GitHub verilerini yenile",
+    "categories": {
+      "all": "TÜMÜ",
+      "desktop": "MASAÜSTÜ",
+      "vscode": "VS CODE",
+      "browser": "TARAYICI",
+      "android": "ANDROID",
+      "cli": "CLI VE SİSTEM"
+    },
+    "sort": {
+      "label": "SIRALA",
+      "ariaLabel": "Uygulamaları sırala",
+      "nameAsc": "Ad (A-Z)",
+      "updatedDesc": "Son güncelleme",
+      "category": "Kategori",
+      "status": "Kurulum durumu"
+    },
+    "search": {
+      "placeholder": "Uygulama, etiket ara…",
+      "clear": "Aramayı temizle"
+    },
+    "view": {
+      "grid": "Kart görünümüne geç",
+      "table": "Ayrıntılı tabloya geç"
+    }
+  },
+  "categories": {
+    "Desktop Apps": "Masaüstü uygulamaları",
+    "VS Code & Editor": "VS Code ve editör",
+    "Browser Extensions": "Tarayıcı eklentileri",
+    "Android & Mobile": "Android ve mobil",
+    "CLI & System": "CLI ve sistem"
+  },
+  "app": {
+    "github": "GitHub",
+    "open": "Aç",
+    "install": "Kur",
+    "launch": "Başlat",
+    "launchWeb": "Web'de aç",
+    "getApp": "Edin",
+    "download": "İndir",
+    "lastUpdated": "Son güncelleme: {{date}}",
+    "tag": {
+      "vscode": "VS Code",
+      "extension": "Eklenti",
+      "android": "Android",
+      "native": "Yerel"
+    },
+    "status": {
+      "installed": "Kurulu",
+      "pinned": "Sabitlendi",
+      "pinnedReady": "Sabitlendi / Hazır",
+      "available": "Mevcut",
+      "availableToInstall": "Kuruluma hazır",
+      "availableOnWeb": "Web'de mevcut",
+      "webReady": "Web'de hazır"
+    },
+    "fetching": "@projectGloria sürümleri alınıyor…",
+    "noMatch": "Filtrelerinize uyan Gloria uygulaması yok.",
+    "catalogUnavailable": "Uygulama kataloğu yüklenemedi. Bağlantınızı kontrol edip yenileyin."
+  },
+  "grid": {
+    "notInstalled": "Kurulu değil ({{count}})",
+    "allSuiteApps": "Paketteki tüm uygulamalar ({{count}})",
+    "inspectHint": "README ve sürümleri görmek için bir karta tıklayın",
+    "detailsTooltip": "Ayrıntılar, README ve sürümler"
+  },
+  "table": {
+    "app": "Uygulama",
+    "status": "Durum",
+    "version": "Sürüm",
+    "released": "Yayın",
+    "author": "Geliştirici",
+    "action": "İşlem",
+    "inspectTooltip": "Uygulamayı incele"
+  },
+  "drawer": {
+    "close": "Kapat",
+    "installing": "Kuruluyor (%{{percent}})",
+    "openApp": "Uygulamayı aç",
+    "launchOpen": "Başlat / Aç",
+    "openWebStore": "Web / mağazayı aç",
+    "githubRepo": "GitHub deposu",
+    "locateExe": ".exe seç",
+    "locateExeTooltip": "Diskinizdeki bir .exe dosyasını bağlayın",
+    "openFolderTooltip": "Kurulum klasörünü aç",
+    "uninstall": "Kaldır",
+    "uninstallTooltip": "Uygulamayı kaldır",
+    "notInstalled": "Kurulu değil",
+    "unpin": "Sabitlemeyi kaldır",
+    "unpinTooltip": "Sabitlenen paketten çıkar",
+    "pinToTop": "Üste sabitle",
+    "pinTooltip": "Paketin en üstüne sabitle",
+    "overview": "Genel bakış",
+    "updated": "Güncelleme",
+    "platforms": "Platformlar",
+    "techStack": "Teknolojiler",
+    "status": "Durum",
+    "localBinary": "Yerel dosya:",
+    "releases": "GitHub sürümleri ve kurulum dosyaları",
+    "viewAllReleases": "Tüm sürümler ↗",
+    "checkingReleases": "GitHub sürümleri kontrol ediliyor…",
+    "recommended": "Önerilen kurulum dosyası",
+    "noAssets": "Henüz derlenmiş bir sürüm dosyası yayımlanmadı. Kaynak kod arşivini indirebilir ya da depoyu doğrudan açabilirsiniz.",
+    "downloadZip": "ZIP indir",
+    "readmePreview": "README.md önizlemesi",
+    "loadingReadme": "README GitHub'dan yükleniyor…",
+    "noReadme": "Varsayılan dalda README.md bulunamadı."
+  },
+  "showcase": {
+    "kicker": "01 / Gloria uygulamaları",
+    "appsCount": "{{count}} uygulama",
+    "openSource": "Açık kaynak",
+    "localFirst": "Önce yerel",
+    "heroTitle": "{{count}} araç.",
+    "heroAccent": "Tek bir zanaat",
+    "heroBody": "Medya dönüştürme, GPU hızlandırmalı terminal, mikrosaniyede NTFS dosya arama, parçalı indirmeler, etkileşimli React 19 dersleri, Counter-Strike 2 stüdyoları, yapay zekâ kota panoları, VS Code neon temaları, tarayıcı konteynerleri ve Android araçları. <1>@projectGloria</1> imzalı yerel ve açık kaynak uygulamalar; hız için tasarlandı, buluta bağımlılık yok.",
+    "openLauncher": "Başlatıcıyı aç",
+    "downloadDesktop": "Masaüstü başlatıcıyı indir",
+    "browseGithub": "GitHub'da göz at",
+    "copyLink": "Bağlantıyı kopyala",
+    "copiedLink": "Bağlantı kopyalandı",
+    "recommendedLabel": "Önerilen:",
+    "recommendedBody": "GloriaLauncher, aşağıdaki tüm araçları kuran ve başlatan yerel bir Windows masaüstü uygulamasıdır; web için de derlenebilir.",
+    "lineupKicker": "02 / Koleksiyon",
+    "lineupTitle": "Keşfetmek için bir araç seçin",
+    "switchToLauncher": "Izgara / tablo görünümüne geç →",
+    "explore": "{{name}} uygulamasını keşfet",
+    "principlesKicker": "03 / İlkeler · tüm Gloria projelerinde ortak",
+    "principlesTitle": "Doğru şekilde yapıldı.",
+    "principles": {
+      "openSourceTitle": "Açık kaynak",
+      "openSourceBody": "Her depo GitHub'da @projectGloria altında barındırılır. Kodu inceleyin, fork'layın ya da kaynaktan kendiniz derleyin.",
+      "localTitle": "Önce yerel, sıfır telemetri",
+      "localBody": "Dosyalarınız, kitaplıklarınız, notlarınız ve medyanız bilgisayarınızda kalır. Zorunlu bulut trafiği, abonelik ya da izleme yok.",
+      "speedTitle": "Hız için tasarlandı",
+      "speedBody": "Doğrudan NTFS MFT indekslemeden wgpu gölgelendiricilerine ve Tauri 2 Rust dosyalarına kadar önce performans gelir.",
+      "unifiedTitle": "Web ve masaüstü bir arada",
+      "unifiedBody": "Araçlara herhangi bir tarayıcıdan GitHub Pages üzerinden göz atıp başlatın ya da Windows'ta yerel GloriaLauncher'ı kullanın."
+    }
+  },
+  "settings": {
+    "title": "Gloria Launcher ayarları",
+    "close": "Ayarları kapat",
+    "language": "Arayüz dili",
+    "languageDesc": "Tercih ettiğiniz dili seçin ya da sistem dilini kullanın.",
+    "languageAuto": "Otomatik (sistem) · {{language}}",
+    "githubToken": "GitHub kişisel erişim belirteci (isteğe bağlı)",
+    "githubTokenPlaceholder": "ghp_... (GitHub API sınırını saatte 60'tan 5.000 isteğe çıkarır)",
+    "githubTokenHelp": "Yalnızca cihazınızda saklanır. Sürüm dosyaları ve commit tarihleri için api.github.com/users/projectGloria sorgulanırken kullanılır.",
+    "rescanWorkspace": "Çalışma alanını yeniden tara",
+    "resetDefaultPinned": "Sabitlenenleri sıfırla",
+    "save": "Ayarları kaydet",
+    "saved": "Kaydedildi"
+  },
+  "footer": {
+    "syncing": "GitHub ile eşitleniyor…",
+    "justNow": "Az önce kontrol edildi",
+    "minsAgo_one": "{{count}} dk önce kontrol edildi",
+    "minsAgo_other": "{{count}} dk önce kontrol edildi",
+    "status": "{{time}} · Gloria API ve GitHub kullanılıyor ({{installed}}/{{total}} {{mode}})",
+    "installed": "kurulu",
+    "pinned": "sabitlendi",
+    "desktopRuntime": "Masaüstü sürümü",
+    "webEdition": "Web sürümü",
+    "webTooltip": "GloriaLauncher Web (GitHub Pages)",
+    "githubTooltip": "GitHub'da @projectGloria",
+    "themeTooltip": "VS Code Marketplace'te Gloria Theme",
+    "builtBy": "Nihil tarafından geliştirildi"
+  },
+  "toast": {
+    "installStarted": "{{name}} v{{version}} kurulum dosyası indirildi ve başlatıldı",
+    "installFailed": "{{name}} kurulamadı: {{error}}",
+    "launched": "{{name}} başlatıldı",
+    "launchFailed": "{{name}} başlatılamadı: {{error}}",
+    "addedToSuite": "{{name}} paketinize eklendi",
+    "uninstalled": "{{name}} kaldırıldı",
+    "uninstallError": "Kaldırma hatası: {{error}}",
+    "unpinned": "{{name}} sabitlenen paketten çıkarıldı",
+    "pinned": "{{name}} en üste sabitlendi",
+    "rescanned": "Çalışma alanındaki uygulamalar yeniden tarandı",
+    "resetPinned": "Sabitlenen uygulamalar sıfırlandı",
+    "exeLinked": "{{name}} için yerel dosya bağlandı"
+  }
+}

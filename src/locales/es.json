@@ -1,0 +1,200 @@
+{
+  "titlebar": {
+    "launcher": "Lanzador",
+    "showcase": "Catálogo y escaparate",
+    "getDesktop": "App de escritorio",
+    "downloadNativeTooltip": "Descargar GloriaLauncher nativo para Windows",
+    "githubTooltip": "Abrir @projectGloria en GitHub",
+    "language": "Idioma",
+    "settingsTooltip": "Ajustes del lanzador",
+    "minimize": "Minimizar",
+    "maximize": "Maximizar",
+    "close": "Cerrar"
+  },
+  "toolbar": {
+    "refreshTooltip": "Actualizar el catálogo y los datos de GitHub",
+    "categories": {
+      "all": "TODAS",
+      "desktop": "ESCRITORIO",
+      "vscode": "VS CODE",
+      "browser": "NAVEGADOR",
+      "android": "ANDROID",
+      "cli": "CLI Y SISTEMA"
+    },
+    "sort": {
+      "label": "ORDENAR",
+      "ariaLabel": "Ordenar aplicaciones",
+      "nameAsc": "Nombre (A-Z)",
+      "updatedDesc": "Última actualización",
+      "category": "Categoría",
+      "status": "Estado de instalación"
+    },
+    "search": {
+      "placeholder": "Filtrar apps, etiquetas…",
+      "clear": "Borrar búsqueda"
+    },
+    "view": {
+      "grid": "Ver como tarjetas",
+      "table": "Ver como tabla detallada"
+    }
+  },
+  "categories": {
+    "Desktop Apps": "Apps de escritorio",
+    "VS Code & Editor": "VS Code y editor",
+    "Browser Extensions": "Extensiones de navegador",
+    "Android & Mobile": "Android y móvil",
+    "CLI & System": "CLI y sistema"
+  },
+  "app": {
+    "github": "GitHub",
+    "open": "Abrir",
+    "install": "Instalar",
+    "launch": "Iniciar",
+    "launchWeb": "Abrir web",
+    "getApp": "Obtener",
+    "download": "Descargar",
+    "lastUpdated": "Actualizado: {{date}}",
+    "tag": {
+      "vscode": "VS Code",
+      "extension": "Extensión",
+      "android": "Android",
+      "native": "Nativa"
+    },
+    "status": {
+      "installed": "Instalada",
+      "pinned": "Fijada",
+      "pinnedReady": "Fijada / Lista",
+      "available": "Disponible",
+      "availableToInstall": "Disponible para instalar",
+      "availableOnWeb": "Disponible en la web",
+      "webReady": "Lista en la web"
+    },
+    "fetching": "Obteniendo versiones de @projectGloria…",
+    "noMatch": "Ninguna app de Gloria coincide con tus filtros.",
+    "catalogUnavailable": "No se pudo cargar el catálogo. Revisa tu conexión y actualiza."
+  },
+  "grid": {
+    "notInstalled": "No instaladas ({{count}})",
+    "allSuiteApps": "Todas las apps de la suite ({{count}})",
+    "inspectHint": "Haz clic en una tarjeta para ver el README y las versiones",
+    "detailsTooltip": "Detalles, README y versiones"
+  },
+  "table": {
+    "app": "App",
+    "status": "Estado",
+    "version": "Versión",
+    "released": "Publicada",
+    "author": "Autor",
+    "action": "Acción",
+    "inspectTooltip": "Inspeccionar app"
+  },
+  "drawer": {
+    "close": "Cerrar",
+    "installing": "Instalando ({{percent}} %)",
+    "openApp": "Abrir app",
+    "launchOpen": "Iniciar / Abrir",
+    "openWebStore": "Abrir web / tienda",
+    "githubRepo": "Repositorio en GitHub",
+    "locateExe": "Buscar .exe",
+    "locateExeTooltip": "Vincular un ejecutable .exe de tu disco",
+    "openFolderTooltip": "Abrir carpeta de instalación",
+    "uninstall": "Desinstalar",
+    "uninstallTooltip": "Desinstalar app",
+    "notInstalled": "No instalada",
+    "unpin": "Desfijar",
+    "unpinTooltip": "Quitar de la suite fijada",
+    "pinToTop": "Fijar arriba",
+    "pinTooltip": "Fijar en la parte superior de la suite",
+    "overview": "Resumen",
+    "updated": "Actualizada",
+    "platforms": "Plataformas",
+    "techStack": "Tecnologías",
+    "status": "Estado",
+    "localBinary": "Binario local:",
+    "releases": "Versiones de GitHub e instaladores",
+    "viewAllReleases": "Ver todas las versiones ↗",
+    "checkingReleases": "Comprobando versiones de GitHub…",
+    "recommended": "Instalador recomendado",
+    "noAssets": "Todavía no se ha publicado ningún binario precompilado. Puedes descargar el archivo del código fuente o abrir el repositorio directamente.",
+    "downloadZip": "Descargar ZIP",
+    "readmePreview": "Vista previa de README.md",
+    "loadingReadme": "Cargando el README desde GitHub…",
+    "noReadme": "No se encontró README.md en la rama principal."
+  },
+  "showcase": {
+    "kicker": "01 / Apps de Gloria",
+    "appsCount": "{{count}} apps",
+    "openSource": "Código abierto",
+    "localFirst": "Local primero",
+    "heroTitle": "{{count}} herramientas.",
+    "heroAccent": "Un solo oficio",
+    "heroBody": "Conversión de medios, emulación de terminal por GPU, búsqueda de archivos NTFS en microsegundos, descargas segmentadas, lecciones interactivas de React 19, estudios de Counter-Strike 2, paneles de cuotas de IA, temas neón para VS Code, contenedores de navegador y utilidades para Android. Apps nativas y de código abierto de <1>@projectGloria</1>, pensadas para la velocidad y sin ataduras a la nube.",
+    "openLauncher": "Abrir el lanzador",
+    "downloadDesktop": "Descargar el lanzador de escritorio",
+    "browseGithub": "Explorar en GitHub",
+    "copyLink": "Copiar enlace",
+    "copiedLink": "Enlace copiado",
+    "recommendedLabel": "Recomendado:",
+    "recommendedBody": "GloriaLauncher es una app de escritorio nativa para Windows que instala e inicia cada herramienta de abajo, y también puede compilarse para la web.",
+    "lineupKicker": "02 / La colección",
+    "lineupTitle": "Elige una herramienta para explorar",
+    "switchToLauncher": "Cambiar a la vista de cuadrícula / tabla →",
+    "explore": "Explorar {{name}}",
+    "principlesKicker": "03 / Principios · compartidos por todos los proyectos Gloria",
+    "principlesTitle": "Hecho como se debe.",
+    "principles": {
+      "openSourceTitle": "Código abierto",
+      "openSourceBody": "Cada repositorio está alojado en GitHub bajo @projectGloria. Inspecciona el código, haz un fork o compílalo tú mismo.",
+      "localTitle": "Local primero y sin telemetría",
+      "localBody": "Tus archivos, bibliotecas, notas y medios se quedan en tu equipo. Sin viajes forzados a la nube, sin suscripciones y sin rastreo.",
+      "speedTitle": "Diseñado para la velocidad",
+      "speedBody": "Desde la indexación directa de la MFT de NTFS y los shaders wgpu hasta los binarios Rust de Tauri 2, el rendimiento va primero.",
+      "unifiedTitle": "Web y escritorio unidos",
+      "unifiedBody": "Explora e inicia las herramientas desde GitHub Pages en cualquier navegador, o usa GloriaLauncher de forma nativa en Windows."
+    }
+  },
+  "settings": {
+    "title": "Ajustes de Gloria Launcher",
+    "close": "Cerrar ajustes",
+    "language": "Idioma de la interfaz",
+    "languageDesc": "Elige tu idioma o sigue el de tu sistema.",
+    "languageAuto": "Auto (sistema) · {{language}}",
+    "githubToken": "Token de acceso personal de GitHub (opcional)",
+    "githubTokenPlaceholder": "ghp_... (sube el límite de la API de GitHub de 60 a 5.000 solicitudes/h)",
+    "githubTokenHelp": "Se guarda solo en tu dispositivo. Se usa al consultar api.github.com/users/projectGloria para obtener archivos de versiones y fechas de commits.",
+    "rescanWorkspace": "Volver a analizar el espacio de trabajo",
+    "resetDefaultPinned": "Restablecer apps fijadas",
+    "save": "Guardar ajustes",
+    "saved": "Guardado"
+  },
+  "footer": {
+    "syncing": "Sincronizando con GitHub…",
+    "justNow": "Comprobado justo ahora",
+    "minsAgo_one": "Comprobado hace {{count}} min",
+    "minsAgo_many": "Comprobado hace {{count}} min",
+    "minsAgo_other": "Comprobado hace {{count}} min",
+    "status": "{{time}} · Usando la API de Gloria y GitHub ({{installed}}/{{total}} {{mode}})",
+    "installed": "instaladas",
+    "pinned": "fijadas",
+    "desktopRuntime": "Versión de escritorio",
+    "webEdition": "Edición web",
+    "webTooltip": "GloriaLauncher Web (GitHub Pages)",
+    "githubTooltip": "@projectGloria en GitHub",
+    "themeTooltip": "Tema Gloria en VS Code Marketplace",
+    "builtBy": "Creado por Nihil"
+  },
+  "toast": {
+    "installStarted": "Instalador de {{name}} v{{version}} descargado e iniciado",
+    "installFailed": "Falló la instalación de {{name}}: {{error}}",
+    "launched": "{{name}} iniciada",
+    "launchFailed": "No se pudo iniciar {{name}}: {{error}}",
+    "addedToSuite": "{{name}} añadida a tu suite",
+    "uninstalled": "{{name}} desinstalada",
+    "uninstallError": "Error al desinstalar: {{error}}",
+    "unpinned": "{{name}} quitada de la suite fijada",
+    "pinned": "{{name}} fijada en la parte superior",
+    "rescanned": "Ejecutables del espacio de trabajo analizados de nuevo",
+    "resetPinned": "Apps fijadas restablecidas",
+    "exeLinked": "Ejecutable local vinculado a {{name}}"
+  }
+}

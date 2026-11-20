@@ -1,0 +1,115 @@
+{
+  "Vulpes": {
+    "subtitle": "Cliente Git de escritorio para GitLab",
+    "description": "Cliente Git de escritorio multiplataforma para GitLab con merge requests, pipelines de CI/CD, incidencias y soporte para instancias autoalojadas."
+  },
+  "Carmen": {
+    "subtitle": "Descargador FLAC sin pérdida y organizador de biblioteca",
+    "description": "Descargador FLAC sin pérdida y organizador de biblioteca para Windows, con varias fuentes de respaldo, etiquetado y sin telemetría."
+  },
+  "Lyra": {
+    "subtitle": "Reproductor de música hi-fi local",
+    "tagline": "La estética fluida de la web se une a la reproducción nativa en Rust.",
+    "description": "Un reproductor de música refinado y local para Windows, creado con Tauri, Rust y fluidos efectos de aurora. Admite bibliotecas FLAC/WAV sin pérdida, letras sincronizadas y reproducción sin pausas."
+  },
+  "Ada": {
+    "subtitle": "Gestor de tareas sin conexión y temporizador Pomodoro",
+    "description": "Gestor de tareas sin conexión y temporizador Pomodoro con sonidos ambientales para concentrarse y sincronización con Obsidian. Creado con Flutter."
+  },
+  "Faber": {
+    "subtitle": "Detector de stack y ejecutor de compilaciones",
+    "description": "App para Windows que detecta el stack de un proyecto, instala las dependencias que faltan, muestra la salida de compilación en directo y lista los artefactos."
+  },
+  "devCleanup": {
+    "subtitle": "Limpiador de disco para cachés de compilación",
+    "tagline": "Recupera gigas de node_modules, target y cachés .venv.",
+    "description": "Limpiador de disco para desarrolladores, rapidísimo y sin riesgos, escrito en Rust puro para Windows. Analiza tus espacios de trabajo en milisegundos y recupera con seguridad gigas de node_modules, carpetas target de Rust, entornos .venv de Python y cachés de paquetes."
+  },
+  "Bonjorno": {
+    "subtitle": "Página de nueva pestaña personalizable para Brave",
+    "description": "Extensión Manifest V3 de nueva pestaña personalizable para Brave, con almacenamiento local, configuración JSON portátil y sin telemetría."
+  },
+  "Mutatio": {
+    "subtitle": "Servicio de apariencia de la barra de tareas de Windows",
+    "description": "Servicio de apariencia de la barra de tareas para Windows 11 y 10 escrito en Rust: transiciones suaves, menú en la bandeja del sistema, control por línea de comandos y menos de 15 MB de RAM."
+  },
+  "WingetUI": {
+    "subtitle": "Interfaz gráfica para winget",
+    "description": "Interfaz gráfica portátil para winget en Windows: busca, instala, actualiza y organiza selecciones de apps, con WebView2."
+  },
+  "Babbage": {
+    "subtitle": "Búsqueda de escritorio sin conexión con OCR local",
+    "description": "Búsqueda de escritorio sin conexión en nombres de archivo, documentos, código e imágenes, con OCR en el dispositivo, CLI y servidor MCP. Sin telemetría."
+  },
+  "Faceit-Autopilot": {
+    "subtitle": "Aceptación automática y vetos de mapas en FACEIT CS2",
+    "description": "Extensión de Chrome para FACEIT CS2 que acepta partidas automáticamente, veta mapas por prioridad y reproduce un aviso sonoro al encontrar partida."
+  },
+  "CS2Prac": {
+    "subtitle": "Servidor de práctica de CS2 local",
+    "description": "App para Windows que ejecuta un servidor de práctica de CS2 local: cualquier mapa, skins del lado del servidor (cuchillos, guantes, agentes, pegatinas, charms), herramientas de práctica de MatchZy y modos deathmatch y puntería. Servidor LAN privado en -insecure: nada toca la memoria del cliente del juego."
+  },
+  "Wallupus": {
+    "subtitle": "Fondos de pantalla Android en alta resolución",
+    "tagline": "Descubre, recorta y aplica fondos en inicio y bloqueo con Kotlin nativo.",
+    "description": "Estudio de fondos de pantalla nativo para Android escrito en Kotlin. Explora, previsualiza y aplica fondos nítidos en alta resolución directamente en tu pantalla de inicio y de bloqueo."
+  },
+  "Draco": {
+    "subtitle": "Gestor de descargas segmentadas y captura de streams",
+    "tagline": "Aceleración segmentada dinámica, captura de descargas del navegador y BitTorrent.",
+    "description": "Gestor de descargas personal de alto rendimiento para Windows con aceleración HTTP multisegmento dinámica, captura de descargas del navegador, captura de streams HLS/DASH, colas y programador."
+  },
+  "Nothing": {
+    "subtitle": "Búsqueda instantánea de archivos con MFT de NTFS y SIMD",
+    "tagline": "Búsqueda de archivos instantánea con seguimiento en vivo del diario USN.",
+    "description": "Búsqueda de archivos instantánea para Windows escrita en Rust. Lee directamente la Master File Table (MFT) de NTFS, sigue en vivo el diario de cambios USN y busca subcadenas con aceleración SIMD."
+  },
+  "Lumina": {
+    "subtitle": "Espacio de conocimiento y notas al estilo Claude",
+    "tagline": "Notas con un toque editorial, borrador y bóveda Markdown local.",
+    "description": "Un espacio de conocimiento personal y borrador para desarrolladores, local y al estilo Claude, para Windows, creado con Electron, React, TypeScript y CodeMirror 6."
+  },
+  "Kintsugi": {
+    "subtitle": "Cliente Git de escritorio sin telemetría",
+    "tagline": "Revisión cuidada de diffs, gestión de ramas y redacción de commits.",
+    "description": "Un cliente Git de escritorio refinado y sin telemetría para Windows, creado con Electron, React y TypeScript. Sin ataduras a cuentas y con cambio de repositorio instantáneo."
+  },
+  "Inscriptio": {
+    "subtitle": "App de bandeja que limpia el rastreo de las URL",
+    "description": "App nativa de bandeja para Windows que elimina los parámetros de rastreo y normaliza las URL en cuanto las copias. Escrita en Rust puro."
+  },
+  "DefaultFast": {
+    "subtitle": "Cambio rápido de apps predeterminadas en Windows",
+    "tagline": "Evita los lentos menús de Configuración y asocia extensiones con un clic.",
+    "description": "Una utilidad nativa y rápida para Windows que permite ver y cambiar las asociaciones de tipos de archivo predeterminadas sin pasar por decenas de ventanas de Configuración."
+  },
+  "Orca": {
+    "subtitle": "App de utilidades nativa para Android",
+    "tagline": "Creada en Kotlin con Jetpack Compose y versiones que se actualizan solas.",
+    "description": "App nativa para Android creada con Kotlin moderno y Jetpack Compose. Se distribuye en APK para ARM64 y x86_64 con verificación SHA-256."
+  },
+  "Simulacrum": {
+    "subtitle": "Creador de iconos .ico de Windows multirresolución",
+    "description": "Da forma a imágenes y exporta iconos .ico de Windows multirresolución con máscaras geométricas, procesamiento por lotes y vista previa en directo."
+  },
+  "Keystroker": {
+    "subtitle": "Motor de sonido de switches mecánicos sin latencia",
+    "tagline": "21 perfiles de sonido de switches mecánicos para teclado y ratón.",
+    "description": "Un elegante motor de sonido sin latencia para teclado y ratón mecánicos en Windows, con 21 perfiles de switches auténticos, HUD en la bandeja del sistema y hooks de entrada nativos de bajo nivel."
+  },
+  "Steameer": {
+    "subtitle": "Gestor de inventario y cartera del mercado de Steam",
+    "tagline": "Vende en lote, sigue el valor de tus objetos y vuelve a publicar con precios en vivo.",
+    "description": "Tu compañero para el inventario de Steam y el Mercado de la Comunidad. Vende objetos en lote, sigue el valor de tu cartera a lo largo del tiempo y vuelve a publicarlos con seguridad comprobando precios en vivo."
+  },
+  "Volumeer": {
+    "subtitle": "Amplificador de audio por pestaña hasta el 500 %",
+    "tagline": "Sube las pestañas silenciosas hasta el 500 % con enrutamiento CORS inteligente.",
+    "description": "Amplificador de audio preciso por pestaña para Brave y Chromium. Sube el volumen hasta el 500 % con memoria por dominio, enrutamiento inteligente de elementos multimedia CORS y captura mediante GainNode de Web Audio."
+  },
+  "Screener": {
+    "subtitle": "Captura de páginas completas en PNG, WebP o PDF",
+    "tagline": "Une páginas con desplazamiento completas en local, sin subir nada a la nube.",
+    "description": "Una extensión de Chrome ligera y centrada en la privacidad para capturar páginas web completas con desplazamiento y exportarlas en local como PNG sin pérdida, JPG, WebP o PDF continuo de una sola hoja."
+  }
+}

@@ -234,6 +234,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                     {app.techStack.slice(0, 3).map((tech) => (
                       <span
                         key={tech}
+                        lang="en"
                         className="px-2 py-0.5 bg-[#111114] border border-[#1f1f26] font-mono-code text-[9.5px] tracking-[0.1em] text-[#7c7c88]"
                       >
                         {tech}

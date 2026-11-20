@@ -100,7 +100,7 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
               }}
               className="flex items-center gap-1 font-mono-code text-[10px] tracking-[0.14em] text-[#8a8a96] hover:text-white uppercase transition-colors cursor-pointer"
             >
-              <span>{t("app.github")}</span>
+              <span lang="en">{t("app.github")}</span>
               <ArrowUpRight size={11} />
             </button>
           </div>
@@ -147,7 +147,17 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
                   ? t("app.status.availableOnWeb")
                   : t("app.status.availableToInstall")}
               </span>
-              <span className="inline-block px-1.5 py-0.5 bg-[#151519] border border-[#25252c] font-mono-code text-[9px] tracking-[0.1em] text-[#7c7c88] uppercase">
+              <span
+                lang={
+                  app.language &&
+                  !["VS Code & Editor", "Browser Extensions", "Android & Mobile"].includes(
+                    app.category
+                  )
+                    ? "en"
+                    : undefined
+                }
+                className="inline-block px-1.5 py-0.5 bg-[#151519] border border-[#25252c] font-mono-code text-[9px] tracking-[0.1em] text-[#7c7c88] uppercase"
+              >
                 {app.category === "VS Code & Editor"
                   ? t("app.tag.vscode")
                   : app.category === "Browser Extensions"

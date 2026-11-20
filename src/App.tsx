@@ -34,11 +34,12 @@ import { AppDetailDrawer } from "./components/AppDetailDrawer";
 import { FooterBar } from "./components/FooterBar";
 import { SettingsModal } from "./components/SettingsModal";
 import { useTranslation } from "react-i18next";
+import { localizeApp } from "./i18n";
 
 const GH_TOKEN_STORAGE_KEY = "gloria_launcher_gh_token";
 
 export const App: React.FC = () => {
-  const [apps, setApps] = useState<GloriaAppEntry[]>(() => {
+  const [catalogApps, setApps] = useState<GloriaAppEntry[]>(() => {
     return getCachedSyncedApps()?.apps || [];
   });
   const [installedMap, setInstalledMap] = useState<
@@ -70,7 +71,19 @@ export const App: React.FC = () => {
   });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const language = i18n.resolvedLanguage;
+  const apps = useMemo(
+    () => catalogApps.map((app) => localizeApp(app, language)),
+    [catalogApps, language]
+  );
+  const drawerAppView = useMemo(
+    () =>
+      drawerApp
+        ? apps.find((app) => app.id === drawerApp.id) ?? drawerApp
+        : null,
+    [apps, drawerApp]
+  );
   const isDesktop = isTauriDesktop();
 
   const showToast = useCallback((msg: string) => {
@@ -461,7 +474,7 @@ export const App: React.FC = () => {
 
       {/* Slide-over App Inspector Drawer */}
       <AppDetailDrawer
-        app={drawerApp}
+        app={drawerAppView}
         installedRecord={drawerApp ? installedMap[drawerApp.id] : undefined}
         downloadProgress={drawerApp ? downloadingMap[drawerApp.id] : undefined}
         githubToken={githubToken}

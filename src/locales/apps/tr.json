@@ -1,0 +1,115 @@
+{
+  "Vulpes": {
+    "subtitle": "GitLab için masaüstü Git istemcisi",
+    "description": "GitLab için çapraz platform masaüstü Git istemcisi: merge request'ler, CI/CD hatları, issue'lar ve kendi sunucunuzda barındırılan kurulum desteği."
+  },
+  "Carmen": {
+    "subtitle": "Kayıpsız FLAC indirici ve kitaplık düzenleyici",
+    "description": "Windows için kayıpsız FLAC indirici ve müzik kitaplığı düzenleyici; birden çok kaynağa geri dönüş, etiketleme desteği ve sıfır telemetri."
+  },
+  "Lyra": {
+    "subtitle": "Yerel öncelikli hi-fi müzik çalar",
+    "tagline": "Akıcı web estetiği, yerel Rust ses oynatımıyla buluşuyor.",
+    "description": "Tauri, Rust ve akıcı aurora görselleriyle geliştirilmiş, Windows için zarif ve yerel öncelikli bir müzik çalar. Kayıpsız FLAC/WAV kitaplıklarını, senkronize şarkı sözlerini ve boşluksuz çalmayı destekler."
+  },
+  "Ada": {
+    "subtitle": "Çevrimdışı görev yöneticisi ve Pomodoro sayacı",
+    "description": "Odaklanma için ortam sesleri ve Obsidian eşitlemesi sunan, çevrimdışı öncelikli görev yöneticisi ve Pomodoro sayacı. Flutter ile geliştirildi."
+  },
+  "Faber": {
+    "subtitle": "Proje yığını algılayıcı ve derleme aracı",
+    "description": "Projenin teknoloji yığınını algılayan, eksik bağımlılıkları kuran, derleme çıktısını canlı gösteren ve çıktı dosyalarını listeleyen Windows uygulaması."
+  },
+  "devCleanup": {
+    "subtitle": "Derleme önbellekleri için disk temizleyici",
+    "tagline": "node_modules, target ve .venv önbelleklerinden gigabaytlarca alan kazanın.",
+    "description": "Saf Rust ile yazılmış, Windows için son derece hızlı ve risksiz geliştirici disk temizleyicisi. Çalışma alanlarını milisaniyeler içinde tarar; node_modules, Rust target klasörleri, Python .venv ortamları ve paket önbelleklerinden gigabaytlarca alanı güvenle geri kazandırır."
+  },
+  "Bonjorno": {
+    "subtitle": "Brave için özelleştirilebilir Yeni Sekme sayfası",
+    "description": "Brave tarayıcı için özelleştirilebilir Manifest V3 Yeni Sekme eklentisi; yerel depolama, taşınabilir JSON yapılandırması ve sıfır telemetri."
+  },
+  "Mutatio": {
+    "subtitle": "Windows görev çubuğu görünüm servisi",
+    "description": "Rust ile yazılmış Windows 11 ve 10 görev çubuğu görünüm servisi: yumuşak geçişler, sistem tepsisi menüsü, komut satırı kontrolü ve 15 MB'ın altında RAM kullanımı."
+  },
+  "WingetUI": {
+    "subtitle": "winget için masaüstü arayüzü",
+    "description": "WebView2 tabanlı, winget için taşınabilir Windows masaüstü arayüzü: uygulama arayın, kurun, güncelleyin ve hazır uygulama listelerinizi düzenleyin."
+  },
+  "Babbage": {
+    "subtitle": "Cihaz içi OCR'lı çevrimdışı masaüstü arama",
+    "description": "Dosya adları, belgeler, kod ve görseller için çevrimdışı masaüstü arama; cihaz içi OCR, CLI ve MCP sunucusu. Telemetri yok."
+  },
+  "Faceit-Autopilot": {
+    "subtitle": "FACEIT CS2 otomatik kabul ve harita banlama",
+    "description": "FACEIT CS2 için maçları otomatik kabul eden, haritaları önceliğe göre banlayan ve maç bulunduğunda sesli uyarı veren Chrome eklentisi."
+  },
+  "CS2Prac": {
+    "subtitle": "Yerel CS2 antrenman sunucusu",
+    "description": "Yerel bir CS2 antrenman sunucusu çalıştıran Windows uygulaması: istediğiniz harita, sunucu taraflı skinler (bıçak, eldiven, ajan, çıkartma, charm), MatchZy antrenman araçları, deathmatch ve aim modları. Özel -insecure LAN sunucusu; oyun istemcisinin belleğine hiçbir şekilde dokunmaz."
+  },
+  "Wallupus": {
+    "subtitle": "Yüksek çözünürlüklü Android duvar kâğıtları",
+    "tagline": "Kotlin ile yerel duvar kâğıdı keşfi, kırpma ve ana/kilit ekranına uygulama.",
+    "description": "Kotlin ile yazılmış yerel Android duvar kâğıdı stüdyosu. Yüksek çözünürlüklü duvar kâğıtlarına göz atın, önizleyin ve doğrudan ana ekranınıza ve kilit ekranınıza uygulayın."
+  },
+  "Draco": {
+    "subtitle": "Parçalı indirme yöneticisi ve yayın yakalama",
+    "tagline": "Dinamik parçalı hızlandırma, tarayıcı indirmelerini devralma ve BitTorrent.",
+    "description": "Windows için yüksek performanslı kişisel indirme yöneticisi: dinamik çok parçalı HTTP hızlandırma, tarayıcı indirmelerini devralma, HLS/DASH medya yayını yakalama, kuyruklar ve zamanlayıcı."
+  },
+  "Nothing": {
+    "subtitle": "NTFS MFT ve SIMD ile anında dosya arama",
+    "tagline": "Canlı USN günlüğü takibiyle anında dosya arama.",
+    "description": "Rust ile yazılmış, Windows için anında dosya arama aracı. NTFS Ana Dosya Tablosu'nu (MFT) doğrudan okur, USN Değişiklik Günlüğü'nü canlı izler ve SIMD hızlandırmalı alt dize eşleştirme yapar."
+  },
+  "Lumina": {
+    "subtitle": "Claude tarzı bilgi alanı ve not uygulaması",
+    "tagline": "Sıcak, editoryal not alma, karalama defteri ve yerel Markdown kasası.",
+    "description": "Electron, React, TypeScript ve CodeMirror 6 ile geliştirilmiş, Windows için yerel öncelikli, Claude tarzı kişisel bilgi alanı ve geliştirici karalama defteri."
+  },
+  "Kintsugi": {
+    "subtitle": "Telemetrisiz kişisel Git masaüstü istemcisi",
+    "tagline": "Özenli diff inceleme, dal yönetimi ve commit hazırlama.",
+    "description": "Electron, React ve TypeScript ile geliştirilmiş, Windows için zarif ve telemetrisiz kişisel Git masaüstü istemcisi. Hesaba bağımlılık yok, depolar arasında anında geçiş."
+  },
+  "Inscriptio": {
+    "subtitle": "URL izleme parametrelerini temizleyen tepsi uygulaması",
+    "description": "Kopyaladığınız anda URL'lerdeki izleme parametrelerini temizleyip bağlantıyı sadeleştiren yerel Windows sistem tepsisi uygulaması. Saf Rust ile geliştirildi."
+  },
+  "DefaultFast": {
+    "subtitle": "Hızlı Windows varsayılan uygulama değiştirici",
+    "tagline": "Yavaş Ayarlar menülerini atlayın, dosya uzantılarını tek tıkla atayın.",
+    "description": "Onlarca Windows Ayarlar penceresinde dolaşmadan varsayılan dosya türü ilişkilendirmelerini görüntüleyip değiştirmenizi sağlayan hızlı, yerel bir Windows aracı."
+  },
+  "Orca": {
+    "subtitle": "Yerel Android yardımcı uygulaması",
+    "tagline": "Kotlin ve Jetpack Compose ile geliştirildi, kendini güncelleyen sürümlerle gelir.",
+    "description": "Modern Kotlin ve Jetpack Compose ile geliştirilmiş yerel Android uygulaması. ARM64 ve x86_64 APK sürümleri ve SHA-256 doğrulamasıyla gelir."
+  },
+  "Simulacrum": {
+    "subtitle": "Çok çözünürlüklü Windows .ico oluşturucu",
+    "description": "Görselleri şekillendirin ve geometrik maskeler, toplu işleme ve canlı önizlemeyle çok çözünürlüklü Windows .ico simgeleri dışa aktarın."
+  },
+  "Keystroker": {
+    "subtitle": "Gecikmesiz mekanik switch ses motoru",
+    "tagline": "Klavye ve fare için 21 mekanik switch ses profili.",
+    "description": "Windows için şık, gecikmesiz mekanik klavye ve fare ses motoru: 21 gerçekçi switch profili, sistem tepsisi göstergesi ve düşük seviyeli yerel giriş kancaları."
+  },
+  "Steameer": {
+    "subtitle": "Steam envanter ve pazar portföyü yöneticisi",
+    "tagline": "Toplu satış yapın, eşya portföyünüzün değerini izleyin, canlı fiyatla yeniden listeleyin.",
+    "description": "Kişisel Steam envanteri ve Topluluk Pazarı yardımcınız. Eşyaları toplu satın, portföy değerinizi zaman içinde takip edin ve canlı fiyat kontrolleriyle güvenle yeniden listeleyin."
+  },
+  "Volumeer": {
+    "subtitle": "Sekme başına %500'e kadar ses yükseltici",
+    "tagline": "Sessiz sekmeleri akıllı CORS medya yönlendirmesiyle %500'e kadar yükseltin.",
+    "description": "Brave ve Chromium için sekme bazında hassas ses yükseltici. Alan adı bazında hatırlama, akıllı CORS medya öğesi yönlendirmesi ve Web Audio GainNode yakalamasıyla sesi %500'e kadar artırın."
+  },
+  "Screener": {
+    "subtitle": "Tam sayfa yakalama: PNG, WebP veya tek sayfa PDF",
+    "tagline": "Kaydırılan sayfaların tamamını yerelde birleştirin, buluta hiçbir şey yüklenmez.",
+    "description": "Kaydırılan web sayfalarının tamamını yakalayıp yerelde kayıpsız PNG, JPG, WebP ya da kesintisiz tek sayfa PDF olarak dışa aktaran, hafif ve gizlilik odaklı bir Chrome eklentisi."
+  }
+}

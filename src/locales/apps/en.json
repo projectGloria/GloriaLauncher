@@ -1,0 +1,14 @@
+{
+  "Vulpes": { "subtitle": "Desktop Git client for GitLab" },
+  "Carmen": { "subtitle": "Lossless FLAC downloader & library organizer" },
+  "Ada": { "subtitle": "Offline task manager & Pomodoro timer" },
+  "Faber": { "subtitle": "Project stack detector & build runner" },
+  "Bonjorno": { "subtitle": "Customizable New Tab page for Brave" },
+  "Mutatio": { "subtitle": "Windows taskbar appearance daemon" },
+  "WingetUI": { "subtitle": "Desktop GUI for winget" },
+  "Babbage": { "subtitle": "Offline desktop search with on-device OCR" },
+  "Faceit-Autopilot": { "subtitle": "FACEIT CS2 auto-accept & map bans" },
+  "CS2Prac": { "subtitle": "Local CS2 practice server" },
+  "Inscriptio": { "subtitle": "Tray app that strips URL tracking" },
+  "Simulacrum": { "subtitle": "Multi-resolution Windows .ico maker" }
+}

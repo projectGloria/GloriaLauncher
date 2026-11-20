@@ -114,7 +114,7 @@ export const Titlebar: React.FC<TitlebarProps> = ({
           className="hidden lg:flex items-center gap-1 px-3 h-full border-l border-[#1f1f24] text-[#8a8a96] hover:text-white hover:bg-[#141418] font-mono-code text-[10px] tracking-[0.14em] uppercase transition-colors cursor-pointer"
           title={t("titlebar.githubTooltip")}
         >
-          <span>@projectGloria</span>
+          <span lang="en">@projectGloria</span>
           <ExternalLink size={10} />
         </button>
 
