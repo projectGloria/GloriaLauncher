@@ -5,8 +5,6 @@ import {
   Download,
   FolderOpen,
   Trash2,
-  Pin,
-  PinOff,
   FileCode2,
   Loader2,
   Play,
@@ -49,7 +47,7 @@ interface AppDetailDrawerProps {
     asset: ReleaseAssetInfo,
     version: string
   ) => void;
-  onUninstallOrUnpin: (app: GloriaAppEntry) => void;
+  onUninstall: (app: GloriaAppEntry) => void;
   onCustomExeBound: (record: InstalledAppRecord) => void;
 }
 
@@ -61,7 +59,7 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
   onClose,
   onPrimaryAction,
   onInstallSpecificAsset,
-  onUninstallOrUnpin,
+  onUninstall,
   onCustomExeBound,
 }) => {
   const [readme, setReadme] = useState<string>("");
@@ -218,7 +216,7 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
               ) : (
                 <>
                   <Download size={13} />
-                  <span>{isDesktop ? t("app.install") : app.webUrl ? t("app.launchWeb") : t("app.getApp")}</span>
+                  <span>{t("app.install")}</span>
                 </>
               )}
             </button>
@@ -268,39 +266,17 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
               </button>
             )}
 
-            <button
-              type="button"
-              onClick={() => onUninstallOrUnpin(app)}
-              title={
-                isDesktop
-                  ? isInstalled
-                    ? t("drawer.uninstallTooltip")
-                    : t("drawer.notInstalled")
-                  : isInstalled
-                  ? t("drawer.unpinTooltip")
-                  : t("drawer.pinTooltip")
-              }
-              className="h-9 px-3 bg-[#16161c] hover:bg-[#241317] border border-[#2c2c36] hover:border-[#dc143c] text-[#a1a1aa] hover:text-white font-mono-code text-[10px] tracking-[0.12em] uppercase flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              {isDesktop ? (
-                isInstalled ? (
-                  <>
-                    <Trash2 size={12} />
-                    <span>{t("drawer.uninstall")}</span>
-                  </>
-                ) : null
-              ) : isInstalled ? (
-                <>
-                  <PinOff size={12} />
-                  <span>{t("drawer.unpin")}</span>
-                </>
-              ) : (
-                <>
-                  <Pin size={12} />
-                  <span>{t("drawer.pinToTop")}</span>
-                </>
-              )}
-            </button>
+            {isDesktop && isInstalled && (
+              <button
+                type="button"
+                onClick={() => onUninstall(app)}
+                title={t("drawer.uninstallTooltip")}
+                className="h-9 px-3 bg-[#16161c] hover:bg-[#241317] border border-[#2c2c36] hover:border-[#dc143c] text-[#a1a1aa] hover:text-white font-mono-code text-[10px] tracking-[0.12em] uppercase flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Trash2 size={12} />
+                <span>{t("drawer.uninstall")}</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -348,11 +324,7 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
                   className="font-mono-code text-xs font-semibold mt-1"
                   style={{ color: isInstalled ? app.accentColor : "#93b4ff" }}
                 >
-                  {isInstalled
-                    ? isDesktop
-                      ? t("app.status.installed")
-                      : t("app.status.pinned")
-                    : t("app.status.available")}
+                  {isInstalled ? t("app.status.installed") : t("app.status.available")}
                 </div>
               </div>
             </div>

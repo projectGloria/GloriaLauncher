@@ -54,9 +54,6 @@
     "github": "GitHub",
     "open": "Aç",
     "install": "Kur",
-    "launch": "Başlat",
-    "launchWeb": "Web'de aç",
-    "getApp": "Edin",
     "download": "İndir",
     "lastUpdated": "Son güncelleme: {{date}}",
     "tag": {
@@ -67,12 +64,8 @@
     },
     "status": {
       "installed": "Kurulu",
-      "pinned": "Sabitlendi",
-      "pinnedReady": "Sabitlendi / Hazır",
       "available": "Mevcut",
-      "availableToInstall": "Kuruluma hazır",
-      "availableOnWeb": "Web'de mevcut",
-      "webReady": "Web'de hazır"
+      "availableToInstall": "Kuruluma hazır"
     },
     "fetching": "@projectGloria sürümleri alınıyor…",
     "noMatch": "Filtrelerinize uyan Gloria uygulaması yok.",
@@ -82,6 +75,7 @@
     "notInstalled": "Kurulu değil ({{count}})",
     "allSuiteApps": "Paketteki tüm uygulamalar ({{count}})",
     "inspectHint": "README ve sürümleri görmek için bir karta tıklayın",
+    "detectHint": "Yüklü uygulamaları algılamak için masaüstü uygulamasını yükleyin",
     "detailsTooltip": "Ayrıntılar, README ve sürümler"
   },
   "table": {
@@ -105,11 +99,6 @@
     "openFolderTooltip": "Kurulum klasörünü aç",
     "uninstall": "Kaldır",
     "uninstallTooltip": "Uygulamayı kaldır",
-    "notInstalled": "Kurulu değil",
-    "unpin": "Sabitlemeyi kaldır",
-    "unpinTooltip": "Sabitlenen paketten çıkar",
-    "pinToTop": "Üste sabitle",
-    "pinTooltip": "Paketin en üstüne sabitle",
     "overview": "Genel bakış",
     "updated": "Güncelleme",
     "platforms": "Platformlar",
@@ -168,7 +157,6 @@
     "githubTokenPlaceholder": "ghp_... (GitHub API sınırını saatte 60'tan 5.000 isteğe çıkarır)",
     "githubTokenHelp": "Yalnızca cihazınızda saklanır. Sürüm dosyaları ve commit tarihleri için api.github.com/users/projectGloria sorgulanırken kullanılır.",
     "rescanWorkspace": "Çalışma alanını yeniden tara",
-    "resetDefaultPinned": "Sabitlenenleri sıfırla",
     "save": "Ayarları kaydet",
     "saved": "Kaydedildi"
   },
@@ -178,8 +166,8 @@
     "minsAgo_one": "{{count}} dk önce kontrol edildi",
     "minsAgo_other": "{{count}} dk önce kontrol edildi",
     "status": "{{time}} · Gloria API ve GitHub kullanılıyor ({{installed}}/{{total}} {{mode}})",
+    "statusWeb": "{{time}} · Gloria API ve GitHub kullanılıyor ({{total}} uygulama)",
     "installed": "kurulu",
-    "pinned": "sabitlendi",
     "desktopRuntime": "Masaüstü sürümü",
     "webEdition": "Web sürümü",
     "webTooltip": "GloriaLauncher Web (GitHub Pages)",
@@ -192,13 +180,9 @@
     "installFailed": "{{name}} kurulamadı: {{error}}",
     "launched": "{{name}} başlatıldı",
     "launchFailed": "{{name}} başlatılamadı: {{error}}",
-    "addedToSuite": "{{name}} paketinize eklendi",
     "uninstalled": "{{name}} kaldırıldı",
     "uninstallError": "Kaldırma hatası: {{error}}",
-    "unpinned": "{{name}} sabitlenen paketten çıkarıldı",
-    "pinned": "{{name}} en üste sabitlendi",
     "rescanned": "Çalışma alanındaki uygulamalar yeniden tarandı",
-    "resetPinned": "Sabitlenen uygulamalar sıfırlandı",
     "exeLinked": "{{name}} için yerel dosya bağlandı"
   },
   "update": {

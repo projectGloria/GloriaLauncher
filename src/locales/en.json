@@ -54,9 +54,6 @@
     "github": "GitHub",
     "open": "Open",
     "install": "Install",
-    "launch": "Launch",
-    "launchWeb": "Launch Web",
-    "getApp": "Get App",
     "download": "Download",
     "lastUpdated": "Last updated: {{date}}",
     "tag": {
@@ -67,12 +64,8 @@
     },
     "status": {
       "installed": "Installed",
-      "pinned": "Pinned",
-      "pinnedReady": "Pinned / Ready",
       "available": "Available",
-      "availableToInstall": "Available to install",
-      "availableOnWeb": "Available on web",
-      "webReady": "Web ready"
+      "availableToInstall": "Available to install"
     },
     "fetching": "Fetching releases from @projectGloria…",
     "noMatch": "No Gloria apps match your filter criteria.",
@@ -82,6 +75,7 @@
     "notInstalled": "Not installed ({{count}})",
     "allSuiteApps": "All suite apps ({{count}})",
     "inspectHint": "Click any card to inspect README & releases",
+    "detectHint": "Get the desktop app to detect installed apps",
     "detailsTooltip": "App details, README & releases"
   },
   "table": {
@@ -105,11 +99,6 @@
     "openFolderTooltip": "Open install folder",
     "uninstall": "Uninstall",
     "uninstallTooltip": "Uninstall app",
-    "notInstalled": "Not installed",
-    "unpin": "Unpin",
-    "unpinTooltip": "Unpin from top suite",
-    "pinToTop": "Pin to Top",
-    "pinTooltip": "Pin to top suite",
     "overview": "Overview",
     "updated": "Updated",
     "platforms": "Platforms",
@@ -168,7 +157,6 @@
     "githubTokenPlaceholder": "ghp_... (raises the GitHub API limit from 60 to 5,000 req/hr)",
     "githubTokenHelp": "Stored locally on your device only. Used when querying api.github.com/users/projectGloria for live release assets and commit timestamps.",
     "rescanWorkspace": "Rescan Local Workspace",
-    "resetDefaultPinned": "Reset Default Pinned",
     "save": "Save Settings",
     "saved": "Saved"
   },
@@ -178,8 +166,8 @@
     "minsAgo_one": "Checked {{count}} min ago",
     "minsAgo_other": "Checked {{count}} min ago",
     "status": "{{time}} · Using Gloria API and GitHub ({{installed}}/{{total}} {{mode}})",
+    "statusWeb": "{{time}} · Using Gloria API and GitHub ({{total}} apps)",
     "installed": "installed",
-    "pinned": "pinned",
     "desktopRuntime": "Desktop Runtime",
     "webEdition": "Web Edition",
     "webTooltip": "GloriaLauncher Web (GitHub Pages)",
@@ -192,13 +180,9 @@
     "installFailed": "Install failed for {{name}}: {{error}}",
     "launched": "Launched {{name}}",
     "launchFailed": "Could not launch {{name}}: {{error}}",
-    "addedToSuite": "{{name}} added to your active suite",
     "uninstalled": "Uninstalled {{name}}",
     "uninstallError": "Uninstall error: {{error}}",
-    "unpinned": "Removed {{name}} from pinned suite",
-    "pinned": "Pinned {{name}} to top suite",
     "rescanned": "Rescanned local workspace executables",
-    "resetPinned": "Reset default pinned apps",
     "exeLinked": "Linked local executable for {{name}}"
   },
   "update": {

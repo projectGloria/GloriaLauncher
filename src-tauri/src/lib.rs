@@ -699,20 +699,11 @@ mod system_installed {
     }
 }
 
-/// Catalog entries from the launcher's last scan, reused by the local web bridge.
-#[derive(Default)]
-struct LastCandidates(std::sync::Mutex<Vec<LocalCandidateInput>>);
-
 #[tauri::command]
 fn get_installed_apps(
     app: AppHandle,
     candidates: Vec<LocalCandidateInput>,
 ) -> Result<Vec<InstalledAppRecord>, String> {
-    if let Some(state) = app.try_state::<LastCandidates>() {
-        if let Ok(mut last) = state.0.lock() {
-            *last = candidates.clone();
-        }
-    }
     Ok(detect_installed_apps(&app, candidates))
 }
 
@@ -776,166 +767,6 @@ fn detect_installed_apps(
 
     let _ = save_registry(app, &reg);
     reg.into_values().collect()
-}
-
-/// Lets the GitHub Pages site see which Gloria apps are installed on this PC.
-///
-/// While the launcher runs it answers `GET /installed` on 127.0.0.1 only, only
-/// for the allowed web origins, and only with app ids and versions (no paths).
-mod web_bridge {
-    use super::{detect_installed_apps, load_registry, LastCandidates};
-    use serde::Serialize;
-    use std::io::{Read, Write};
-    use std::net::{TcpListener, TcpStream};
-    use std::path::Path;
-    use std::time::Duration;
-    use tauri::{AppHandle, Manager};
-
-    pub const PORT: u16 = 47615;
-
-    const ALLOWED_ORIGINS: &[&str] = &[
-        "https://projectgloria.github.io",
-        "http://localhost:1420",
-        "http://localhost:4173",
-    ];
-
-    #[derive(Serialize)]
-    #[serde(rename_all = "camelCase")]
-    struct BridgeApp {
-        app_id: String,
-        version: String,
-        source: String,
-    }
-
-    #[derive(Serialize)]
-    #[serde(rename_all = "camelCase")]
-    struct BridgeResponse {
-        launcher_version: &'static str,
-        apps: Vec<BridgeApp>,
-    }
-
-    pub fn start(app: AppHandle) {
-        let listener = match TcpListener::bind(("127.0.0.1", PORT)) {
-            Ok(l) => l,
-            Err(e) => {
-                eprintln!("Web bridge not started (port {PORT}): {e}");
-                return;
-            }
-        };
-        std::thread::spawn(move || {
-            for stream in listener.incoming().flatten() {
-                let app = app.clone();
-                std::thread::spawn(move || handle(stream, &app));
-            }
-        });
-    }
-
-    fn header<'a>(request: &'a str, name: &str) -> Option<&'a str> {
-        request.lines().skip(1).find_map(|line| {
-            let (k, v) = line.split_once(':')?;
-            k.trim().eq_ignore_ascii_case(name).then(|| v.trim())
-        })
-    }
-
-    fn is_allowed_origin(origin: &str) -> bool {
-        ALLOWED_ORIGINS.iter().any(|o| o.eq_ignore_ascii_case(origin))
-    }
-
-    /// Rejects DNS-rebinding requests that reach us under another host name.
-    fn is_loopback_host(host: &str) -> bool {
-        let name = host.rsplit_once(':').map(|(h, _)| h).unwrap_or(host);
-        matches!(name, "127.0.0.1" | "localhost" | "[::1]")
-    }
-
-    fn installed_apps(app: &AppHandle) -> Vec<BridgeApp> {
-        let candidates = app
-            .try_state::<LastCandidates>()
-            .and_then(|s| s.0.lock().ok().map(|c| c.clone()))
-            .unwrap_or_default();
-        let records = if candidates.is_empty() {
-            load_registry(app)
-                .into_values()
-                .filter(|r| Path::new(&r.executable_path).exists())
-                .collect()
-        } else {
-            detect_installed_apps(app, candidates)
-        };
-        records
-            .into_iter()
-            .map(|r| BridgeApp {
-                app_id: r.app_id,
-                version: r.version,
-                source: r.source,
-            })
-            .collect()
-    }
-
-    fn handle(mut stream: TcpStream, app: &AppHandle) {
-        let _ = stream.set_read_timeout(Some(Duration::from_secs(3)));
-        let mut buf = [0u8; 8192];
-        let n = stream.read(&mut buf).unwrap_or(0);
-        let request = String::from_utf8_lossy(&buf[..n]);
-        let mut first = request.lines().next().unwrap_or("").split_whitespace();
-        let method = first.next().unwrap_or("");
-        let path = first.next().unwrap_or("");
-
-        let origin = header(&request, "Origin").unwrap_or("");
-        let host_ok = header(&request, "Host").map(is_loopback_host).unwrap_or(false);
-        let allowed = host_ok && is_allowed_origin(origin);
-
-        let (status, body) = match (allowed, method, path) {
-            (false, _, _) => ("403 Forbidden", String::new()),
-            (true, "OPTIONS", _) => ("204 No Content", String::new()),
-            (true, "GET", "/installed") => {
-                let resp = BridgeResponse {
-                    launcher_version: env!("CARGO_PKG_VERSION"),
-                    apps: installed_apps(app),
-                };
-                ("200 OK", serde_json::to_string(&resp).unwrap_or_default())
-            }
-            (true, _, _) => ("404 Not Found", String::new()),
-        };
-
-        let cors = if allowed {
-            format!(
-                "Access-Control-Allow-Origin: {origin}\r\n\
-                 Access-Control-Allow-Methods: GET, OPTIONS\r\n\
-                 Access-Control-Allow-Headers: *\r\n\
-                 Access-Control-Allow-Private-Network: true\r\n\
-                 Vary: Origin\r\n"
-            )
-        } else {
-            String::new()
-        };
-        let response = format!(
-            "HTTP/1.1 {status}\r\n{cors}Content-Type: application/json\r\n\
-             Cache-Control: no-store\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{body}",
-            body.len()
-        );
-        let _ = stream.write_all(response.as_bytes());
-    }
-
-    #[cfg(test)]
-    mod tests {
-        use super::*;
-
-        #[test]
-        fn checks_origin_and_host() {
-            assert!(is_allowed_origin("https://projectgloria.github.io"));
-            assert!(!is_allowed_origin("https://evil.example"));
-            assert!(!is_allowed_origin(""));
-            assert!(is_loopback_host("127.0.0.1:47615"));
-            assert!(is_loopback_host("localhost:47615"));
-            assert!(!is_loopback_host("evil.example:47615"));
-        }
-
-        #[test]
-        fn reads_headers_case_insensitively() {
-            let req = "GET /installed HTTP/1.1\r\nhost: 127.0.0.1:47615\r\nORIGIN: https://x\r\n\r\n";
-            assert_eq!(header(req, "Host"), Some("127.0.0.1:47615"));
-            assert_eq!(header(req, "Origin"), Some("https://x"));
-        }
-    }
 }
 
 const USER_AGENT: &str = concat!("GloriaLauncher/", env!("CARGO_PKG_VERSION"));
@@ -1384,11 +1215,6 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
-        .manage(LastCandidates::default())
-        .setup(|app| {
-            web_bridge::start(app.handle().clone());
-            Ok(())
-        })
         .invoke_handler(tauri::generate_handler![
             get_installed_apps,
             filter_repos_with_releases,

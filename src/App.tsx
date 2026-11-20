@@ -18,7 +18,6 @@ import {
   isTauriDesktop,
   launchDesktopApp,
   openExternalUrl,
-  saveWebPinnedApps,
   uninstallDesktopApp,
 } from "./services/platformService";
 import { Titlebar, type ActivePageMode } from "./components/Titlebar";
@@ -154,17 +153,6 @@ export const App: React.FC = () => {
     return () => window.clearTimeout(t);
   }, [scanPhase]);
 
-  // Web: the desktop launcher may have been opened (or an app installed) since
-  // this page loaded, so re-check installed apps whenever the tab regains focus.
-  useEffect(() => {
-    if (isDesktop || apps.length === 0) return;
-    const onFocus = () => {
-      getInstalledAppsMap(apps).then(setInstalledMap);
-    };
-    window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
-  }, [isDesktop, apps]);
-
   // Listen to Tauri download progress events when running in Desktop runtime
   useEffect(() => {
     if (!isDesktop) return;
@@ -279,70 +267,32 @@ export const App: React.FC = () => {
       return;
     }
 
-    // WEB MODE (GitHub Pages)
-    if (isInstalled) {
-      if (app.webUrl) {
-        await openExternalUrl(app.webUrl);
-      } else {
-        setDrawerApp(app);
-      }
-      return;
+    // WEB MODE (GitHub Pages): nothing is ever "installed" here, so Install
+    // downloads the Windows installer, or opens the app's own page (store,
+    // marketplace, site) when there is no installer.
+    const asset = pickPreferredReleaseAsset(app.releaseAssets || []);
+    if (asset) {
+      await openExternalUrl(asset.browserDownloadUrl);
+    } else if (app.webUrl) {
+      await openExternalUrl(app.webUrl);
+    } else {
+      setDrawerApp(app);
     }
-
-    // Clicking "INSTALL" or "LAUNCH" on an unpinned card in Web Mode:
-    // If it has a direct webUrl, open it; otherwise pin it to the user's top suite & open inspector drawer
-    const newRecord: InstalledAppRecord = {
-      appId: app.id,
-      version: app.version,
-      executablePath: app.webUrl || app.repoUrl,
-      installDir: "web",
-      installedAt: new Date().toISOString(),
-      source: "github-release",
-    };
-    const updatedMap = { ...installedMap, [app.id]: newRecord };
-    setInstalledMap(updatedMap);
-    saveWebPinnedApps(updatedMap);
-    setDrawerApp(app);
-    showToast(t("toast.addedToSuite", { name: app.displayName }));
   };
 
-  const handleUninstallOrUnpin = async (app: GloriaAppEntry) => {
-    if (isDesktop) {
-      if (!installedMap[app.id]) return;
-      try {
-        await uninstallDesktopApp(app.id);
-        setInstalledMap((prev) => {
-          const next = { ...prev };
-          delete next[app.id];
-          return next;
-        });
-        showToast(t("toast.uninstalled", { name: app.displayName }));
-      } catch (err) {
-        showToast(t("toast.uninstallError", { error: err instanceof Error ? err.message : String(err) }));
-      }
-      return;
-    }
-
-    // Web Mode: toggle pin
-    setInstalledMap((prev) => {
-      const next = { ...prev };
-      if (next[app.id]) {
+  const handleUninstall = async (app: GloriaAppEntry) => {
+    if (!isDesktop || !installedMap[app.id]) return;
+    try {
+      await uninstallDesktopApp(app.id);
+      setInstalledMap((prev) => {
+        const next = { ...prev };
         delete next[app.id];
-        showToast(t("toast.unpinned", { name: app.displayName }));
-      } else {
-        next[app.id] = {
-          appId: app.id,
-          version: app.version,
-          executablePath: app.webUrl || app.repoUrl,
-          installDir: "web",
-          installedAt: new Date().toISOString(),
-          source: "github-release",
-        };
-        showToast(t("toast.pinned", { name: app.displayName }));
-      }
-      saveWebPinnedApps(next);
-      return next;
-    });
+        return next;
+      });
+      showToast(t("toast.uninstalled", { name: app.displayName }));
+    } catch (err) {
+      showToast(t("toast.uninstallError", { error: err instanceof Error ? err.message : String(err) }));
+    }
   };
 
   const handleSaveToken = (token: string) => {
@@ -355,19 +305,10 @@ export const App: React.FC = () => {
     loadData(true);
   };
 
-  const handleResetPinned = async () => {
-    try {
-      localStorage.removeItem("gloria_launcher_web_pinned_v1");
-    } catch {
-      // Ignore
-    }
+  const handleRescan = async () => {
     const freshMap = await getInstalledAppsMap(apps);
     setInstalledMap(freshMap);
-    showToast(
-      isDesktop
-        ? t("toast.rescanned")
-        : t("toast.resetPinned")
-    );
+    showToast(t("toast.rescanned"));
   };
 
   // Filter & Sort logic
@@ -536,7 +477,7 @@ export const App: React.FC = () => {
         }}
         onPrimaryAction={handlePrimaryAction}
         onInstallSpecificAsset={handleInstallSpecificAsset}
-        onUninstallOrUnpin={handleUninstallOrUnpin}
+        onUninstall={handleUninstall}
         onCustomExeBound={(record) => {
           setInstalledMap((prev) => ({
             ...prev,
@@ -557,7 +498,7 @@ export const App: React.FC = () => {
         isOpen={settingsOpen}
         githubToken={githubToken}
         onSaveToken={handleSaveToken}
-        onResetPinned={handleResetPinned}
+        onRescan={handleRescan}
         onClose={() => setSettingsOpen(false)}
       />
 

@@ -54,9 +54,6 @@
     "github": "GitHub",
     "open": "Ouvrir",
     "install": "Installer",
-    "launch": "Lancer",
-    "launchWeb": "Lancer (web)",
-    "getApp": "Obtenir",
     "download": "Télécharger",
     "lastUpdated": "Mis à jour : {{date}}",
     "tag": {
@@ -67,12 +64,8 @@
     },
     "status": {
       "installed": "Installée",
-      "pinned": "Épinglée",
-      "pinnedReady": "Épinglée / Prête",
       "available": "Disponible",
-      "availableToInstall": "Disponible à l'installation",
-      "availableOnWeb": "Disponible sur le web",
-      "webReady": "Prête pour le web"
+      "availableToInstall": "Disponible à l'installation"
     },
     "fetching": "Récupération des versions de @projectGloria…",
     "noMatch": "Aucune app Gloria ne correspond à vos filtres.",
@@ -82,6 +75,7 @@
     "notInstalled": "Non installées ({{count}})",
     "allSuiteApps": "Toutes les apps de la suite ({{count}})",
     "inspectHint": "Cliquez sur une carte pour voir le README et les versions",
+    "detectHint": "Installez l'application de bureau pour détecter les apps installées",
     "detailsTooltip": "Détails, README et versions"
   },
   "table": {
@@ -105,11 +99,6 @@
     "openFolderTooltip": "Ouvrir le dossier d'installation",
     "uninstall": "Désinstaller",
     "uninstallTooltip": "Désinstaller l'app",
-    "notInstalled": "Non installée",
-    "unpin": "Détacher",
-    "unpinTooltip": "Retirer de la suite épinglée",
-    "pinToTop": "Épingler",
-    "pinTooltip": "Épingler en haut de la suite",
     "overview": "Aperçu",
     "updated": "Mise à jour",
     "platforms": "Plateformes",
@@ -168,7 +157,6 @@
     "githubTokenPlaceholder": "ghp_... (relève la limite de l'API GitHub de 60 à 5 000 req/h)",
     "githubTokenHelp": "Stocké uniquement sur votre appareil. Utilisé pour interroger api.github.com/users/projectGloria afin d'obtenir les fichiers de version et les dates de commit.",
     "rescanWorkspace": "Réanalyser l'espace de travail",
-    "resetDefaultPinned": "Réinitialiser les apps épinglées",
     "save": "Enregistrer",
     "saved": "Enregistré"
   },
@@ -178,8 +166,8 @@
     "minsAgo_one": "Vérifié il y a {{count}} min",
     "minsAgo_other": "Vérifié il y a {{count}} min",
     "status": "{{time}} · Via l'API Gloria et GitHub ({{installed}}/{{total}} {{mode}})",
+    "statusWeb": "{{time}} · Via l'API Gloria et GitHub ({{total}} apps)",
     "installed": "installées",
-    "pinned": "épinglées",
     "desktopRuntime": "Version bureau",
     "webEdition": "Édition web",
     "webTooltip": "GloriaLauncher Web (GitHub Pages)",
@@ -192,13 +180,9 @@
     "installFailed": "Échec de l'installation de {{name}} : {{error}}",
     "launched": "{{name}} lancée",
     "launchFailed": "Impossible de lancer {{name}} : {{error}}",
-    "addedToSuite": "{{name}} ajoutée à votre suite",
     "uninstalled": "{{name}} désinstallée",
     "uninstallError": "Erreur de désinstallation : {{error}}",
-    "unpinned": "{{name}} retirée de la suite épinglée",
-    "pinned": "{{name}} épinglée en haut de la suite",
     "rescanned": "Exécutables de l'espace de travail réanalysés",
-    "resetPinned": "Apps épinglées réinitialisées",
     "exeLinked": "Exécutable local associé à {{name}}"
   },
   "update": {

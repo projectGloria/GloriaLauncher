@@ -54,9 +54,6 @@
     "github": "GitHub",
     "open": "Abrir",
     "install": "Instalar",
-    "launch": "Iniciar",
-    "launchWeb": "Abrir web",
-    "getApp": "Obtener",
     "download": "Descargar",
     "lastUpdated": "Actualizado: {{date}}",
     "tag": {
@@ -67,12 +64,8 @@
     },
     "status": {
       "installed": "Instalada",
-      "pinned": "Fijada",
-      "pinnedReady": "Fijada / Lista",
       "available": "Disponible",
-      "availableToInstall": "Disponible para instalar",
-      "availableOnWeb": "Disponible en la web",
-      "webReady": "Lista en la web"
+      "availableToInstall": "Disponible para instalar"
     },
     "fetching": "Obteniendo versiones de @projectGloria…",
     "noMatch": "Ninguna app de Gloria coincide con tus filtros.",
@@ -82,6 +75,7 @@
     "notInstalled": "No instaladas ({{count}})",
     "allSuiteApps": "Todas las apps de la suite ({{count}})",
     "inspectHint": "Haz clic en una tarjeta para ver el README y las versiones",
+    "detectHint": "Instala la app de escritorio para detectar las apps instaladas",
     "detailsTooltip": "Detalles, README y versiones"
   },
   "table": {
@@ -105,11 +99,6 @@
     "openFolderTooltip": "Abrir carpeta de instalación",
     "uninstall": "Desinstalar",
     "uninstallTooltip": "Desinstalar app",
-    "notInstalled": "No instalada",
-    "unpin": "Desfijar",
-    "unpinTooltip": "Quitar de la suite fijada",
-    "pinToTop": "Fijar arriba",
-    "pinTooltip": "Fijar en la parte superior de la suite",
     "overview": "Resumen",
     "updated": "Actualizada",
     "platforms": "Plataformas",
@@ -168,7 +157,6 @@
     "githubTokenPlaceholder": "ghp_... (sube el límite de la API de GitHub de 60 a 5.000 solicitudes/h)",
     "githubTokenHelp": "Se guarda solo en tu dispositivo. Se usa al consultar api.github.com/users/projectGloria para obtener archivos de versiones y fechas de commits.",
     "rescanWorkspace": "Volver a analizar el espacio de trabajo",
-    "resetDefaultPinned": "Restablecer apps fijadas",
     "save": "Guardar ajustes",
     "saved": "Guardado"
   },
@@ -179,8 +167,8 @@
     "minsAgo_many": "Comprobado hace {{count}} min",
     "minsAgo_other": "Comprobado hace {{count}} min",
     "status": "{{time}} · Usando la API de Gloria y GitHub ({{installed}}/{{total}} {{mode}})",
+    "statusWeb": "{{time}} · Usando la API de Gloria y GitHub ({{total}} apps)",
     "installed": "instaladas",
-    "pinned": "fijadas",
     "desktopRuntime": "Versión de escritorio",
     "webEdition": "Edición web",
     "webTooltip": "GloriaLauncher Web (GitHub Pages)",
@@ -193,13 +181,9 @@
     "installFailed": "Falló la instalación de {{name}}: {{error}}",
     "launched": "{{name}} iniciada",
     "launchFailed": "No se pudo iniciar {{name}}: {{error}}",
-    "addedToSuite": "{{name}} añadida a tu suite",
     "uninstalled": "{{name}} desinstalada",
     "uninstallError": "Error al desinstalar: {{error}}",
-    "unpinned": "{{name}} quitada de la suite fijada",
-    "pinned": "{{name}} fijada en la parte superior",
     "rescanned": "Ejecutables del espacio de trabajo analizados de nuevo",
-    "resetPinned": "Apps fijadas restablecidas",
     "exeLinked": "Ejecutable local vinculado a {{name}}"
   },
   "update": {

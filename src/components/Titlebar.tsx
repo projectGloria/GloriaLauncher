@@ -82,7 +82,7 @@ export const Titlebar: React.FC<TitlebarProps> = ({
             <LayoutGrid size={11} />
             <span>{t("titlebar.launcher")}</span>
             <span className="text-[9px] text-[#71717a] ml-0.5">
-              ({installedCount}/{totalAppsCount})
+              {isDesktop ? `(${installedCount}/${totalAppsCount})` : `(${totalAppsCount})`}
             </span>
           </button>
           <button

@@ -110,9 +110,9 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
             primaryLabel = `${Math.round(progress.percent)}%`;
           } else if (isInstalled) {
             primaryLabel = t("app.open");
-          } else if (!isDesktop) {
-            primaryLabel = app.webUrl ? t("app.launch") : t("app.install");
           }
+          // Web can't detect installs, so every app is shown in full color.
+          const vivid = isInstalled || !isDesktop;
 
           return (
             <div
@@ -132,7 +132,7 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
                   repoId={app.id}
                   iconKey={app.iconKey}
                   accentColor={app.accentColor}
-                  isInstalled={isInstalled}
+                  isInstalled={vivid}
                   size="sm"
                 />
                 <div className="min-w-0">
@@ -140,7 +140,7 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
                     <span>{app.titlePrefix}</span>
                     <span
                       style={{
-                        color: isInstalled ? app.accentColor : "#a1a1aa",
+                        color: vivid ? app.accentColor : "#a1a1aa",
                       }}
                     >
                       {app.titleAccent}
@@ -156,13 +156,11 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
               <div className="col-span-2 pr-2">
                 {isInstalled ? (
                   <span className="inline-block px-2 py-0.5 bg-[#121215] border border-[#2a2a32] font-mono-code text-[9.5px] font-semibold tracking-[0.14em] text-[#b4b4c0] uppercase">
-                    {isDesktop ? t("app.status.installed") : t("app.status.pinnedReady")}
+                    {t("app.status.installed")}
                   </span>
                 ) : (
                   <span className="inline-block px-2 py-0.5 bg-[#111520] border border-[#222b40] font-mono-code text-[9.5px] font-semibold tracking-[0.14em] text-[#8ab4f8] uppercase">
-                    {!isDesktop && app.webUrl
-                      ? t("app.status.webReady")
-                      : t("app.status.availableToInstall")}
+                    {t("app.status.availableToInstall")}
                   </span>
                 )}
               </div>
@@ -170,7 +168,7 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
               {/* Col 3: Version */}
               <div
                 className={`col-span-1 font-mono-code text-[12px] ${
-                  isInstalled
+                  vivid
                     ? "text-[#f4f4f6] font-semibold"
                     : "text-[#7c7c88]"
                 }`}

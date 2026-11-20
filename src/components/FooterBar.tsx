@@ -27,8 +27,6 @@ export const FooterBar: React.FC<FooterBarProps> = ({
     return t("footer.minsAgo", { count: mins });
   };
 
-  const modeLabel = isDesktop ? t("footer.installed") : t("footer.pinned");
-
   return (
     <footer className="h-8 w-full bg-[#0b0b0c] border-t border-[#1f1f24] px-4 flex items-center justify-between select-none shrink-0 z-20">
       {/* Left Telemetry Status (Matches Screenshot bottom-left) */}
@@ -39,12 +37,14 @@ export const FooterBar: React.FC<FooterBarProps> = ({
           }`}
         />
         <span>
-          {t("footer.status", {
-            time: timeDiffLabel(),
-            installed: installedCount,
-            total: totalApps,
-            mode: modeLabel,
-          })}
+          {isDesktop
+            ? t("footer.status", {
+                time: timeDiffLabel(),
+                installed: installedCount,
+                total: totalApps,
+                mode: t("footer.installed"),
+              })
+            : t("footer.statusWeb", { time: timeDiffLabel(), total: totalApps })}
         </span>
       </div>
 

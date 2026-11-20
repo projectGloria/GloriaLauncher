@@ -264,11 +264,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                       }}
                       className="px-3 py-1 bg-[#1b1b22] hover:bg-[#f2f1ee] text-[#d4d4dc] hover:text-[#0b0b0c] border border-[#2e2e38] font-mono-code text-[10px] font-semibold tracking-[0.14em] uppercase transition-colors cursor-pointer"
                     >
-                      {isInstalled
-                        ? t("app.open")
-                        : !isDesktop && app.webUrl
-                        ? t("app.launchWeb")
-                        : t("app.install")}
+                      {isInstalled ? t("app.open") : t("app.install")}
                     </button>
                   </div>
                 </div>

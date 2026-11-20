@@ -13,10 +13,10 @@ Launcher and showcase for the @projectGloria app suite. It is a React 19 + TS + 
 
 ## Architecture
 - `src/main.tsx` → `src/App.tsx`: one shell that switches between grid, table and showcase views, plus the inspector drawer and settings modal (`src/components/`).
-- `src/services/platformService.ts`: the only bridge to Tauri. Every `invoke()` goes through it behind `isTauriDesktop()`, and each call has a web fallback (localStorage pins, or the local bridge on `127.0.0.1:47615`).
+- `src/services/platformService.ts`: the only bridge to Tauri. Every `invoke()` goes through it behind `isTauriDesktop()`, and each call has a web fallback. The web edition never reports apps as installed: detection is desktop-only.
 - `src/services/githubService.ts`: catalog sync, tried in order: local `catalog.json` snapshot, then the hosted Pages snapshot, then GitHub (native scraping on desktop, REST on web). Results are cached in localStorage under versioned keys (`_v4`).
 - `src/data/gloriaCatalog.ts`: hand-curated metadata merged over the discovered repos. Repos only appear if they have a published release.
-- `src-tauri/src/lib.rs`: all Rust code in one file. It holds the commands registered in `generate_handler!`: release discovery, downloads to `~/Downloads/GloriaLauncherDownloads`, zip extraction, launch and uninstall, and the self-update check. It also reads the Windows Uninstall registry keys (`winreg`) and runs the `web_bridge` HTTP server.
+- `src-tauri/src/lib.rs`: all Rust code in one file. It holds the commands registered in `generate_handler!`: release discovery, downloads to `~/Downloads/GloriaLauncherDownloads`, zip extraction, launch and uninstall, and the self-update check. It also reads the Windows Uninstall registry keys (`winreg`).
 - Installed-app registry: `installed_apps.json` in Tauri's `app_local_data_dir`.
 - `src/i18n.ts`: languages en/fr/es/tr. UI strings live in `src/locales/*.json`; per-app texts live in `src/locales/apps/*.json`, keyed by repo name.
 
@@ -24,7 +24,7 @@ Launcher and showcase for the @projectGloria app suite. It is a React 19 + TS + 
 - **New Tauri command:** register it in `generate_handler!` in `lib.rs`, add a guarded wrapper in `platformService.ts`, and give it a web fallback (or return null).
 - **Window/plugin permissions:** grant them in `src-tauri/capabilities/default.json`. The window has `decorations: false`, so minimize, maximize, close and drag go through the custom `Titlebar.tsx`.
 - **CSP:** `tauri.conf.json` restricts `connect-src` to `api.github.com` and `raw.githubusercontent.com`. A new network host must be added there too, or it fails silently on desktop only.
-- **Web bridge:** its `ALLOWED_ORIGINS` (Pages, `localhost:1420`, `localhost:4173`) gate the web page's installed-app detection. Keep the dev and preview ports in sync with it. The bridge must never return paths, only ids and versions.
+- **Web edition:** it shows every app in full color with an Install button (installer download, else the app's `webUrl`). Don't add installed-app detection or pins to the web; a browser can't see what's installed, and detection belongs to the desktop launcher.
 - **Anonymous GitHub rate limit:** this is 60 requests/hour. The web edition must keep reading the snapshot first; don't add per-repo REST calls on page load.
 - **i18n:** every new UI string goes into all 4 files in `src/locales/`. Don't hardcode English in components.
 - **Cache shape changes:** bump the `_v4` suffix on `CACHE_KEY` and `RELEASE_CACHE_PREFIX` in `githubService.ts`.

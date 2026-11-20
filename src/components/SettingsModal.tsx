@@ -14,7 +14,7 @@ interface SettingsModalProps {
   isOpen: boolean;
   githubToken: string;
   onSaveToken: (token: string) => void;
-  onResetPinned: () => void;
+  onRescan: () => void;
   onClose: () => void;
 }
 
@@ -22,7 +22,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   githubToken,
   onSaveToken,
-  onResetPinned,
+  onRescan,
   onClose,
 }) => {
   const { t } = useTranslation();
@@ -112,18 +112,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
 
           <div className="pt-3 border-t border-[#1f1f26] flex items-center justify-between">
+            {isDesktop ? (
             <button
               type="button"
-              onClick={onResetPinned}
+              onClick={onRescan}
               className="h-8 px-3 bg-[#15151a] hover:bg-[#22222b] border border-[#2b2b36] text-[#a1a1aa] hover:text-white font-mono-code text-[10px] tracking-[0.14em] uppercase flex items-center gap-1.5 cursor-pointer"
             >
               <RotateCcw size={12} />
-              <span>
-                {isDesktop
-                  ? t("settings.rescanWorkspace")
-                  : t("settings.resetDefaultPinned")}
-              </span>
+              <span>{t("settings.rescanWorkspace")}</span>
             </button>
+            ) : (
+              <span />
+            )}
 
             <button
               type="submit"

@@ -53,9 +53,10 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
       primaryLabel = `${Math.round(progress.percent)}%`;
     } else if (isInstalledSection) {
       primaryLabel = t("app.open");
-    } else if (!isDesktop) {
-      primaryLabel = app.webUrl ? t("app.launch") : t("app.install");
     }
+    // Desktop greys out apps that aren't installed; the web edition can't
+    // detect installs, so every app is shown in full color.
+    const vivid = isInstalledSection || !isDesktop;
 
     return (
       <div
@@ -86,7 +87,7 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
             <span
               className="font-mono-code text-[11px] font-semibold tracking-[0.12em] uppercase"
               style={{
-                color: isInstalledSection ? app.accentColor : "#8a8a96",
+                color: vivid ? app.accentColor : "#8a8a96",
               }}
             >
               V{displayVersion.replace(/^v/i, "")}
@@ -111,7 +112,7 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
               repoId={app.id}
               iconKey={app.iconKey}
               accentColor={app.accentColor}
-              isInstalled={isInstalledSection}
+              isInstalled={vivid}
               size="md"
             />
 
@@ -121,7 +122,7 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
                   <span>{app.titlePrefix}</span>
                   <span
                     style={{
-                      color: isInstalledSection ? app.accentColor : "#a1a1aa",
+                      color: vivid ? app.accentColor : "#a1a1aa",
                     }}
                     className="group-hover:brightness-110 transition-all"
                   >
@@ -143,9 +144,7 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
           {!isInstalledSection && (
             <div className="mb-2.5 flex items-center gap-1.5 flex-wrap">
               <span className="inline-block px-2 py-0.5 bg-[#111520] border border-[#222b40] font-mono-code text-[9px] font-semibold tracking-[0.14em] text-[#8ab4f8] uppercase">
-                {!isDesktop && app.webUrl
-                  ? t("app.status.availableOnWeb")
-                  : t("app.status.availableToInstall")}
+                {t("app.status.availableToInstall")}
               </span>
               <span
                 lang={
@@ -245,7 +244,7 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
                 : t("grid.allSuiteApps", { count: availableApps.length })}
             </span>
             <span className="font-mono-code text-[10px] tracking-[0.14em] text-[#52525b] uppercase">
-              {t("grid.inspectHint")}
+              {isDesktop ? t("grid.inspectHint") : t("grid.detectHint")}
             </span>
           </div>
 
