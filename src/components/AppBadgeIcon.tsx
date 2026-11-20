@@ -183,11 +183,13 @@ export const AppBadgeIcon: React.FC<AppBadgeIconProps> = ({
         alt=""
         draggable={false}
         onError={onIconError}
-        className={`${iconDimensions} shrink-0 object-contain transition-transform duration-200 group-hover:scale-[1.04]`}
+        className={`${iconDimensions} shrink-0 object-contain transition-[transform,opacity] duration-200 group-hover:scale-[1.04] ${
+          isInstalled ? "" : "opacity-50 group-hover:opacity-75"
+        }`}
         style={
           isInstalled
             ? { filter: `drop-shadow(0 0 10px ${accentColor}66)` }
-            : undefined
+            : { filter: "grayscale(1)" } // not installed: passive, colorless
         }
       />
     );

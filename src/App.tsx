@@ -35,6 +35,7 @@ import { FooterBar } from "./components/FooterBar";
 import { SettingsModal } from "./components/SettingsModal";
 import { useTranslation } from "react-i18next";
 import { localizeApp } from "./i18n";
+import { useIconPalettes } from "./services/iconColorService";
 
 const GH_TOKEN_STORAGE_KEY = "gloria_launcher_gh_token";
 
@@ -73,9 +74,19 @@ export const App: React.FC = () => {
 
   const { t, i18n } = useTranslation();
   const language = i18n.resolvedLanguage;
+  const appIds = useMemo(() => catalogApps.map((app) => app.id), [catalogApps]);
+  const iconPalettes = useIconPalettes(appIds);
   const apps = useMemo(
-    () => catalogApps.map((app) => localizeApp(app, language)),
-    [catalogApps, language]
+    () =>
+      catalogApps.map((app) => {
+        const localized = localizeApp(app, language);
+        // Match the accent to the app's real icon (e.g. gold for Lyra).
+        const palette = iconPalettes[app.id];
+        return palette
+          ? { ...localized, accentColor: palette.accent, surfaceTint: palette.tint }
+          : localized;
+      }),
+    [catalogApps, language, iconPalettes]
   );
   const drawerAppView = useMemo(
     () =>
