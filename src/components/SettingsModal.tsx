@@ -1,6 +1,8 @@
 import React, { useState } from "react";
-import { X, KeyRound, RotateCcw, Check } from "lucide-react";
+import { X, KeyRound, RotateCcw, Check, Globe } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { isTauriDesktop } from "../services/platformService";
+import { SUPPORTED_LANGUAGES, LANGUAGE_STORAGE_KEY } from "../i18n";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -17,11 +19,26 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onResetPinned,
   onClose,
 }) => {
+  const { t, i18n } = useTranslation();
   const [tokenInput, setTokenInput] = useState(githubToken);
   const [saved, setSaved] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(() => {
+    return localStorage.getItem(LANGUAGE_STORAGE_KEY) || "auto";
+  });
   const isDesktop = isTauriDesktop();
 
   if (!isOpen) return null;
+
+  const handleLanguageChange = (lng: string) => {
+    setSelectedLanguage(lng);
+    if (lng === "auto") {
+      localStorage.removeItem(LANGUAGE_STORAGE_KEY);
+      const systemLng = navigator.language.split("-")[0];
+      i18n.changeLanguage(systemLng === "fr" ? "fr" : "en");
+    } else {
+      i18n.changeLanguage(lng);
+    }
+  };
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,7 +52,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       <div className="w-full max-w-lg bg-[#0e0e12] border border-[#282832] shadow-2xl overflow-hidden">
         <div className="px-5 py-4 border-b border-[#1f1f26] flex items-center justify-between">
           <div className="font-mono-code text-xs font-bold tracking-[0.18em] text-[#f4f4f6] uppercase">
-            GLORIA LAUNCHER SETTINGS
+            {t("settings.title")}
           </div>
           <button
             type="button"
@@ -47,22 +64,46 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         <form onSubmit={handleSave} className="p-5 space-y-5">
+          {/* Language Selection */}
+          <div>
+            <label className="flex items-center gap-1.5 font-mono-code text-[10.5px] font-semibold tracking-[0.14em] text-[#d4d4dc] uppercase mb-2">
+              <Globe size={12} className="text-[#00f0ff]" />
+              <span>{t("settings.language")}</span>
+            </label>
+            <select
+              value={selectedLanguage}
+              onChange={(e) => handleLanguageChange(e.target.value)}
+              className="w-full h-9 bg-[#141419] border border-[#2b2b36] px-3 text-xs text-[#f2f1ee] font-sans focus:outline-none focus:border-[#00f0ff] cursor-pointer"
+            >
+              <option value="auto">
+                {t("settings.languageAuto")} ({i18n.resolvedLanguage === "fr" ? "Français" : "English"})
+              </option>
+              {SUPPORTED_LANGUAGES.map((lang) => (
+                <option key={lang.code} value={lang.code}>
+                  {lang.label}
+                </option>
+              ))}
+            </select>
+            <p className="mt-1.5 text-[11px] text-[#7c7c88] leading-relaxed">
+              {t("settings.languageDesc")}
+            </p>
+          </div>
+
+          {/* GitHub Token */}
           <div>
             <label className="flex items-center gap-1.5 font-mono-code text-[10.5px] font-semibold tracking-[0.14em] text-[#d4d4dc] uppercase mb-2">
               <KeyRound size={12} className="text-[#00f0ff]" />
-              <span>GitHub Personal Access Token (Optional)</span>
+              <span>{t("settings.githubToken")}</span>
             </label>
             <input
               type="password"
               value={tokenInput}
               onChange={(e) => setTokenInput(e.target.value)}
-              placeholder="ghp_... (Increases GitHub API rate limit from 60 to 5,000 req/hr)"
+              placeholder={t("settings.githubTokenPlaceholder")}
               className="w-full h-9 bg-[#141419] border border-[#2b2b36] px-3 text-xs text-[#f2f1ee] placeholder-[#6b6b76] font-mono-code focus:outline-none focus:border-[#00f0ff]"
             />
             <p className="mt-1.5 text-[11px] text-[#7c7c88] leading-relaxed">
-              Stored locally on your device only. Used when querying{" "}
-              <code>api.github.com/users/projectGloria</code> for live release
-              assets and commit timestamps.
+              {t("settings.githubTokenHelp")}
             </p>
           </div>
 
@@ -74,7 +115,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             >
               <RotateCcw size={12} />
               <span>
-                {isDesktop ? "Rescan Local Workspace" : "Reset Default Pinned"}
+                {isDesktop
+                  ? t("settings.rescanWorkspace")
+                  : t("settings.resetDefaultPinned")}
               </span>
             </button>
 
@@ -83,7 +126,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               className="h-8 px-4 bg-[#f2f1ee] hover:bg-white text-[#0b0b0c] font-mono-code text-[10.5px] font-bold tracking-[0.16em] uppercase flex items-center gap-1.5 cursor-pointer"
             >
               {saved && <Check size={12} />}
-              <span>{saved ? "SAVED" : "SAVE SETTINGS"}</span>
+              <span>{saved ? t("settings.saved") : t("settings.save")}</span>
             </button>
           </div>
         </form>

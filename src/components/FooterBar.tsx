@@ -1,5 +1,6 @@
 import React from "react";
 import { Globe, GitBranch, Sparkles, Monitor, Terminal } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { isTauriDesktop, openExternalUrl } from "../services/platformService";
 
 interface FooterBarProps {
@@ -15,15 +16,18 @@ export const FooterBar: React.FC<FooterBarProps> = ({
   totalApps,
   installedCount,
 }) => {
+  const { t } = useTranslation();
   const isDesktop = isTauriDesktop();
 
   const timeDiffLabel = () => {
-    if (isSyncing) return "SYNCING WITH GITHUB API...";
+    if (isSyncing) return t("footer.syncing");
     const diffSec = Math.floor((Date.now() - checkedAt.getTime()) / 1000);
-    if (diffSec < 90) return "CHECKED JUST NOW";
+    if (diffSec < 90) return t("footer.justNow");
     const mins = Math.floor(diffSec / 60);
-    return `CHECKED ${mins}M AGO`;
+    return t("footer.minsAgo", { count: mins });
   };
+
+  const modeLabel = isDesktop ? t("footer.installed") : t("footer.pinned");
 
   return (
     <footer className="h-8 w-full bg-[#0b0b0c] border-t border-[#1f1f24] px-4 flex items-center justify-between select-none shrink-0 z-20">
@@ -35,8 +39,12 @@ export const FooterBar: React.FC<FooterBarProps> = ({
           }`}
         />
         <span>
-          {timeDiffLabel()} · USING GLORIA API AND GITHUB ({installedCount}/
-          {totalApps} {isDesktop ? "INSTALLED" : "PINNED"})
+          {t("footer.status", {
+            time: timeDiffLabel(),
+            installed: installedCount,
+            total: totalApps,
+            mode: modeLabel,
+          })}
         </span>
       </div>
 
@@ -44,7 +52,9 @@ export const FooterBar: React.FC<FooterBarProps> = ({
       <div className="flex items-center gap-3.5 text-[#6b6b76]">
         <span className="hidden sm:inline-flex items-center gap-1 font-mono-code text-[9.5px] tracking-[0.14em] text-[#7c7c88] uppercase">
           {isDesktop ? <Monitor size={11} /> : <Globe size={11} />}
-          <span>{isDesktop ? "DESKTOP RUNTIME" : "WEB EDITION"}</span>
+          <span>
+            {isDesktop ? t("footer.desktopRuntime") : t("footer.webEdition")}
+          </span>
         </span>
 
         <button

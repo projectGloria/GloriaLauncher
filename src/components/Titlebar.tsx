@@ -9,6 +9,7 @@ import {
   Sparkles,
   ExternalLink,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import {
   isTauriDesktop,
   minimizeWindow,
@@ -34,6 +35,7 @@ export const Titlebar: React.FC<TitlebarProps> = ({
   totalAppsCount,
   installedCount,
 }) => {
+  const { t } = useTranslation();
   const isDesktop = isTauriDesktop();
 
   return (
@@ -65,7 +67,7 @@ export const Titlebar: React.FC<TitlebarProps> = ({
             }`}
           >
             <LayoutGrid size={11} />
-            <span>Launcher</span>
+            <span>{t("titlebar.launcher")}</span>
             <span className="text-[9px] text-[#71717a] ml-0.5">
               ({installedCount}/{totalAppsCount})
             </span>
@@ -80,7 +82,7 @@ export const Titlebar: React.FC<TitlebarProps> = ({
             }`}
           >
             <Sparkles size={11} />
-            <span>Lineup &amp; Showcase</span>
+            <span>{t("titlebar.showcase")}</span>
           </button>
         </nav>
       </div>
@@ -96,10 +98,10 @@ export const Titlebar: React.FC<TitlebarProps> = ({
               )
             }
             className="hidden md:flex items-center gap-1.5 mr-3 px-2.5 py-1 bg-[#f2f1ee] hover:bg-white text-[#0b0b0c] font-mono-code text-[10px] font-semibold tracking-[0.12em] uppercase transition-colors cursor-pointer"
-            title="Download native Windows GloriaLauncher"
+            title={t("titlebar.downloadNativeTooltip")}
           >
             <Download size={11} strokeWidth={2.4} />
-            <span>Get Desktop App</span>
+            <span>{t("titlebar.getDesktop")}</span>
           </button>
         )}
 
@@ -118,7 +120,7 @@ export const Titlebar: React.FC<TitlebarProps> = ({
           type="button"
           onClick={onOpenSettings}
           className="w-10 h-full flex items-center justify-center border-l border-[#1f1f24] text-[#8a8a96] hover:text-white hover:bg-[#141418] transition-colors cursor-pointer"
-          title="Launcher Settings"
+          title={t("titlebar.settingsTooltip")}
         >
           <Settings size={14} />
         </button>
@@ -130,7 +132,7 @@ export const Titlebar: React.FC<TitlebarProps> = ({
               type="button"
               onClick={minimizeWindow}
               className="w-10 h-full flex items-center justify-center text-[#8a8a96] hover:text-white hover:bg-[#18181d] transition-colors cursor-pointer"
-              title="Minimize"
+              title={t("titlebar.minimize")}
             >
               <Minus size={13} />
             </button>
@@ -138,7 +140,7 @@ export const Titlebar: React.FC<TitlebarProps> = ({
               type="button"
               onClick={toggleMaximizeWindow}
               className="w-10 h-full flex items-center justify-center text-[#8a8a96] hover:text-white hover:bg-[#18181d] transition-colors cursor-pointer"
-              title="Maximize"
+              title={t("titlebar.maximize")}
             >
               <Square size={11} />
             </button>
@@ -146,7 +148,7 @@ export const Titlebar: React.FC<TitlebarProps> = ({
               type="button"
               onClick={closeWindow}
               className="w-10 h-full flex items-center justify-center text-[#8a8a96] hover:text-white hover:bg-[#dc143c] transition-colors cursor-pointer"
-              title="Close"
+              title={t("titlebar.close")}
             >
               <X size={14} />
             </button>

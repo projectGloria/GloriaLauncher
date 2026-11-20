@@ -1,0 +1,85 @@
+{
+  "titlebar": {
+    "launcher": "Lanceur",
+    "showcase": "Catalogue & Vitrine",
+    "getDesktop": "Obtenir l'App Bureau",
+    "downloadNativeTooltip": "Télécharger l'application Windows native GloriaLauncher",
+    "settingsTooltip": "Paramètres du Lanceur",
+    "minimize": "Réduire",
+    "maximize": "Agrandir",
+    "close": "Fermer"
+  },
+  "toolbar": {
+    "refreshTooltip": "Actualiser le catalogue et la télémétrie GitHub",
+    "categories": {
+      "all": "TOUS",
+      "desktop": "BUREAU",
+      "vscode": "VS CODE",
+      "browser": "NAVIGATEUR",
+      "android": "ANDROID",
+      "cli": "CLI & SYSTÈME"
+    },
+    "sort": {
+      "label": "TRIER",
+      "nameAsc": "Nom (A-Z)",
+      "updatedDesc": "Dernière mise à jour",
+      "category": "Catégorie",
+      "status": "Statut d'installation"
+    },
+    "search": {
+      "placeholder": "Filtrer les applications, tags ou binaires...",
+      "clear": "Effacer la recherche"
+    },
+    "view": {
+      "grid": "Passer en vue grille",
+      "table": "Passer en vue tableau détaillée"
+    }
+  },
+  "settings": {
+    "title": "PARAMÈTRES DU LANCEUR GLORIA",
+    "language": "Langue de l'interface",
+    "languageDesc": "Choisissez votre langue préférée ou utilisez celle de votre système.",
+    "languageAuto": "Auto (Système)",
+    "languages": {
+      "en": "English",
+      "fr": "Français"
+    },
+    "githubToken": "Jeton d'accès personnel GitHub (Facultatif)",
+    "githubTokenPlaceholder": "ghp_... (Augmente la limite d'API GitHub de 60 à 5 000 requêtes/heure)",
+    "githubTokenHelp": "Stocké localement sur votre appareil uniquement. Utilisé pour interroger api.github.com/users/projectGloria pour les versions et commits.",
+    "rescanWorkspace": "Analyser l'espace de travail local",
+    "resetDefaultPinned": "Réinitialiser les favoris par défaut",
+    "save": "ENREGISTRER",
+    "saved": "ENREGISTRÉ"
+  },
+  "footer": {
+    "syncing": "SYNCHRONISATION AVEC L'API GITHUB...",
+    "justNow": "VÉRIFIÉ À L'INSTANT",
+    "minsAgo": "VÉRIFIÉ IL Y A {{count}}M",
+    "status": "{{time}} · VIA API GLORIA ET GITHUB ({{installed}}/{{total}} {{mode}})",
+    "installed": "INSTALLÉES",
+    "pinned": "ÉPINGLÉES",
+    "desktopRuntime": "EXÉCUTION BUREAU",
+    "webEdition": "ÉDITION WEB"
+  },
+  "drawer": {
+    "launch": "LANCER L'APPLICATION",
+    "install": "INSTALLER {{version}}",
+    "reinstall": "RÉINSTALLER",
+    "viewOnWeb": "VOIR SUR LE WEB",
+    "pin": "ÉPINGLER AU LANCEUR",
+    "unpin": "DÉTACHER DU LANCEUR",
+    "uninstall": "DÉSINSTALLER L'APPLICATION",
+    "openFolder": "Ouvrir le dossier",
+    "selectExe": "Sélectionner un .exe local",
+    "downloading": "TÉLÉCHARGEMENT... {{progress}}%",
+    "releaseAssets": "Fichiers de version disponibles",
+    "readme": "README du dépôt",
+    "loadingReadme": "Récupération du README depuis GitHub...",
+    "noReadme": "Aucun README trouvé pour ce dépôt.",
+    "installedAt": "Installé",
+    "lastCommit": "Dernier commit",
+    "license": "Licence",
+    "version": "Version"
+  }
+}

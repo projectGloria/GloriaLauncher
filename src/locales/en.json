@@ -1,0 +1,85 @@
+{
+  "titlebar": {
+    "launcher": "Launcher",
+    "showcase": "Lineup & Showcase",
+    "getDesktop": "Get Desktop App",
+    "downloadNativeTooltip": "Download native Windows GloriaLauncher",
+    "settingsTooltip": "Launcher Settings",
+    "minimize": "Minimize",
+    "maximize": "Maximize",
+    "close": "Close"
+  },
+  "toolbar": {
+    "refreshTooltip": "Refresh catalog & GitHub telemetry",
+    "categories": {
+      "all": "ALL",
+      "desktop": "DESKTOP",
+      "vscode": "VS CODE",
+      "browser": "BROWSER",
+      "android": "ANDROID",
+      "cli": "CLI & SYS"
+    },
+    "sort": {
+      "label": "SORT",
+      "nameAsc": "Name (A-Z)",
+      "updatedDesc": "Last Updated",
+      "category": "Category",
+      "status": "Installed Status"
+    },
+    "search": {
+      "placeholder": "Filter applications, tags, or binaries...",
+      "clear": "Clear search"
+    },
+    "view": {
+      "grid": "Switch to grid cards",
+      "table": "Switch to detailed table"
+    }
+  },
+  "settings": {
+    "title": "GLORIA LAUNCHER SETTINGS",
+    "language": "Interface Language",
+    "languageDesc": "Choose your preferred language or follow your system locale.",
+    "languageAuto": "Auto (System)",
+    "languages": {
+      "en": "English",
+      "fr": "Français"
+    },
+    "githubToken": "GitHub Personal Access Token (Optional)",
+    "githubTokenPlaceholder": "ghp_... (Increases GitHub API rate limit from 60 to 5,000 req/hr)",
+    "githubTokenHelp": "Stored locally on your device only. Used when querying api.github.com/users/projectGloria for live release assets and commit timestamps.",
+    "rescanWorkspace": "Rescan Local Workspace",
+    "resetDefaultPinned": "Reset Default Pinned",
+    "save": "SAVE SETTINGS",
+    "saved": "SAVED"
+  },
+  "footer": {
+    "syncing": "SYNCING WITH GITHUB API...",
+    "justNow": "CHECKED JUST NOW",
+    "minsAgo": "CHECKED {{count}}M AGO",
+    "status": "{{time}} · USING GLORIA API AND GITHUB ({{installed}}/{{total}} {{mode}})",
+    "installed": "INSTALLED",
+    "pinned": "PINNED",
+    "desktopRuntime": "DESKTOP RUNTIME",
+    "webEdition": "WEB EDITION"
+  },
+  "drawer": {
+    "launch": "LAUNCH APP",
+    "install": "INSTALL {{version}}",
+    "reinstall": "REINSTALL",
+    "viewOnWeb": "VIEW ON WEB",
+    "pin": "PIN TO LAUNCHER",
+    "unpin": "UNPIN FROM LAUNCHER",
+    "uninstall": "UNINSTALL APP",
+    "openFolder": "Open Folder",
+    "selectExe": "Select Local .exe",
+    "downloading": "DOWNLOADING... {{progress}}%",
+    "releaseAssets": "Available Release Assets",
+    "readme": "Repository README",
+    "loadingReadme": "Fetching repository README from GitHub...",
+    "noReadme": "No README found for this repository.",
+    "installedAt": "Installed",
+    "lastCommit": "Latest Commit",
+    "license": "License",
+    "version": "Version"
+  }
+}

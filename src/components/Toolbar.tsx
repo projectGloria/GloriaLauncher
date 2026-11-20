@@ -1,5 +1,6 @@
 import React from "react";
 import { RotateCw, LayoutGrid, List, Search, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { AppCategory } from "../types/app";
 
 export type LauncherViewMode = "grid" | "table";
@@ -18,13 +19,13 @@ interface ToolbarProps {
   onRefresh: () => void;
 }
 
-const CATEGORIES: Array<{ label: string; value: AppCategory | "ALL" }> = [
-  { label: "ALL", value: "ALL" },
-  { label: "DESKTOP", value: "Desktop Apps" },
-  { label: "VS CODE", value: "VS Code & Editor" },
-  { label: "BROWSER", value: "Browser Extensions" },
-  { label: "ANDROID", value: "Android & Mobile" },
-  { label: "CLI & SYS", value: "CLI & System" },
+const CATEGORIES: Array<{ key: string; value: AppCategory | "ALL" }> = [
+  { key: "all", value: "ALL" },
+  { key: "desktop", value: "Desktop Apps" },
+  { key: "vscode", value: "VS Code & Editor" },
+  { key: "browser", value: "Browser Extensions" },
+  { key: "android", value: "Android & Mobile" },
+  { key: "cli", value: "CLI & System" },
 ];
 
 export const Toolbar: React.FC<ToolbarProps> = ({
@@ -39,6 +40,8 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   isSyncing,
   onRefresh,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="w-full bg-[#0b0b0c] border-b border-[#1f1f24] px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0">
       {/* Left: Refresh Button + Category Filter Pills */}
@@ -47,7 +50,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           type="button"
           onClick={onRefresh}
           disabled={isSyncing}
-          title="Refresh catalog & GitHub telemetry"
+          title={t("toolbar.refreshTooltip")}
           className="w-7 h-7 flex items-center justify-center bg-[#121215] border border-[#26262e] text-[#a1a1aa] hover:text-white hover:border-[#3e3e4a] transition-colors cursor-pointer disabled:opacity-50"
         >
           <RotateCw
@@ -70,7 +73,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
                     : "bg-[#111114] border-[#1f1f25] text-[#7c7c88] hover:text-[#d4d4dc] hover:border-[#2e2e38]"
                 }`}
               >
-                {cat.label}
+                {t(`toolbar.categories.${cat.key}`)}
               </button>
             );
           })}
@@ -82,7 +85,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
         {viewMode === "grid" && (
           <div className="hidden sm:flex items-center gap-2">
             <span className="font-mono-code text-[10px] tracking-[0.16em] text-[#7c7c88] uppercase">
-              SORT
+              {t("toolbar.sort.label")}
             </span>
             <select
               value={sortBy}
@@ -90,10 +93,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               aria-label="Sort apps"
               className="h-7 bg-[#121215] border border-[#26262e] px-2.5 pr-6 text-xs text-[#e4e4e7] font-sans focus:outline-none focus:border-[#4b4b58] cursor-pointer"
             >
-              <option value="name-asc">Name (A-Z)</option>
-              <option value="updated-desc">Last Updated</option>
-              <option value="category">Category</option>
-              <option value="status">Installed Status</option>
+              <option value="name-asc">{t("toolbar.sort.nameAsc")}</option>
+              <option value="updated-desc">{t("toolbar.sort.updatedDesc")}</option>
+              <option value="category">{t("toolbar.sort.category")}</option>
+              <option value="status">{t("toolbar.sort.status")}</option>
             </select>
           </div>
         )}
@@ -108,7 +111,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => onChangeSearchQuery(e.target.value)}
-            placeholder="Search apps"
+            placeholder={t("toolbar.search.placeholder")}
             className="h-7 w-44 sm:w-52 bg-[#121215] border border-[#26262e] pl-7 pr-6 text-xs text-[#f2f1ee] placeholder-[#6b6b76] focus:outline-none focus:border-[#4b4b58] transition-colors"
           />
           {searchQuery && (
@@ -116,7 +119,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
               type="button"
               onClick={() => onChangeSearchQuery("")}
               className="absolute right-2 text-[#7c7c88] hover:text-white cursor-pointer"
-              title="Clear search"
+              title={t("toolbar.search.clear")}
             >
               <X size={12} />
             </button>
@@ -128,7 +131,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           <button
             type="button"
             onClick={() => onChangeViewMode("grid")}
-            title="Grid View"
+            title={t("toolbar.view.grid")}
             className={`w-7 h-7 flex items-center justify-center transition-colors cursor-pointer ${
               viewMode === "grid"
                 ? "bg-[#f2f1ee] text-[#0b0b0c]"
@@ -140,7 +143,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           <button
             type="button"
             onClick={() => onChangeViewMode("table")}
-            title="Table View"
+            title={t("toolbar.view.table")}
             className={`w-7 h-7 flex items-center justify-center border-l border-[#26262e] transition-colors cursor-pointer ${
               viewMode === "table"
                 ? "bg-[#f2f1ee] text-[#0b0b0c]"
