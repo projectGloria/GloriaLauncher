@@ -79,7 +79,8 @@ export interface InstalledAppRecord {
   executablePath: string;
   installDir: string;
   installedAt: string;
-  source: "github-release" | "local-workspace" | "custom";
+  source: "github-release" | "local-workspace" | "custom" | "system";
+  uninstallCommand?: string;
 }
 
 export interface DownloadProgressPayload {

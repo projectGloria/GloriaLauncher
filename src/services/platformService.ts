@@ -33,13 +33,16 @@ export async function getInstalledAppsMap(
     try {
       const { invoke } = await import("@tauri-apps/api/core");
       const records = await invoke<InstalledAppRecord[]>("get_installed_apps", {
-        candidates: catalog
-          .filter((a) => a.localExeCandidates && a.localExeCandidates.length > 0)
-          .map((a) => ({
-            appId: a.id,
-            version: a.version,
-            candidates: a.localExeCandidates || [],
-          })),
+        // Every app is sent so the backend can also match it against Windows'
+        // installed programs, not only against local workspace builds.
+        candidates: catalog.map((a) => ({
+          appId: a.id,
+          version: a.version,
+          candidates: a.localExeCandidates || [],
+          names: [a.displayName, `${a.titlePrefix ?? ""}${a.titleAccent ?? ""}`].filter(
+            (n): n is string => !!n && n.trim() !== ""
+          ),
+        })),
       });
       const map: Record<string, InstalledAppRecord> = {};
       for (const rec of records) {

@@ -142,6 +142,10 @@ pub struct InstalledAppRecord {
     pub install_dir: String,
     pub installed_at: String,
     pub source: String,
+    /// Uninstall command from the Windows "installed programs" list, for apps
+    /// detected there (source "system").
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub uninstall_command: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -149,7 +153,11 @@ pub struct InstalledAppRecord {
 pub struct LocalCandidateInput {
     pub app_id: String,
     pub version: String,
+    #[serde(default)]
     pub candidates: Vec<String>,
+    /// Names the app may be listed under in Windows' installed programs.
+    #[serde(default)]
+    pub names: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -510,6 +518,187 @@ fn detect_workspace_parent() -> Option<PathBuf> {
     None
 }
 
+/// Reads the Windows "installed programs" (Uninstall) registry keys.
+mod system_installed {
+    use super::{InstalledAppRecord, LocalCandidateInput};
+    use std::path::{Path, PathBuf};
+
+    #[derive(Debug, Clone)]
+    pub struct SystemApp {
+        pub display_name: String,
+        pub version: String,
+        pub install_location: Option<PathBuf>,
+        pub display_icon: Option<String>,
+        pub uninstall_command: Option<String>,
+    }
+
+    /// Lowercase alphanumerics only: "Faceit-Autopilot" -> "faceitautopilot".
+    pub fn normalize(s: &str) -> String {
+        s.chars()
+            .filter(|c| c.is_ascii_alphanumeric())
+            .map(|c| c.to_ascii_lowercase())
+            .collect()
+    }
+
+    /// Drops a trailing version from a display name: "Keystroker 0.1.0" -> "Keystroker".
+    pub fn strip_version(name: &str) -> &str {
+        let trimmed = name.trim();
+        if let Some((head, last)) = trimmed.rsplit_once(' ') {
+            let v = last.trim_start_matches(['v', 'V']);
+            if v.chars().next().map(|c| c.is_ascii_digit()).unwrap_or(false) {
+                return head.trim_end();
+            }
+        }
+        trimmed
+    }
+
+    fn is_helper_exe(file_name: &str) -> bool {
+        let n = file_name.to_ascii_lowercase();
+        n.starts_with("unins")
+            || n.starts_with("uninstall")
+            || n == "update.exe"
+            || n.contains("squirrel")
+            || n.contains("crashpad")
+            || n.contains("elevate")
+    }
+
+    /// "\"C:\\x\\app.exe\",0" -> C:\x\app.exe
+    pub fn parse_icon_path(icon: &str) -> PathBuf {
+        let s = icon.trim();
+        let s = match s.rsplit_once(',') {
+            Some((p, idx)) if idx.trim().trim_start_matches('-').parse::<i32>().is_ok() => p,
+            _ => s,
+        };
+        PathBuf::from(s.trim().trim_matches('"'))
+    }
+
+    fn resolve_executable(app: &SystemApp, wanted: &[String]) -> Option<PathBuf> {
+        if let Some(icon) = &app.display_icon {
+            let p = parse_icon_path(icon);
+            let ok_name = p
+                .file_name()
+                .and_then(|n| n.to_str())
+                .map(|n| n.to_ascii_lowercase().ends_with(".exe") && !is_helper_exe(n))
+                .unwrap_or(false);
+            if ok_name && p.is_file() {
+                return Some(p);
+            }
+        }
+
+        let dir = app.install_location.as_ref().filter(|d| d.is_dir())?;
+        let exes: Vec<PathBuf> = std::fs::read_dir(dir)
+            .ok()?
+            .flatten()
+            .map(|e| e.path())
+            .filter(|p| {
+                p.is_file()
+                    && p.extension()
+                        .and_then(|e| e.to_str())
+                        .map(|e| e.eq_ignore_ascii_case("exe"))
+                        .unwrap_or(false)
+                    && !p
+                        .file_name()
+                        .and_then(|n| n.to_str())
+                        .map(is_helper_exe)
+                        .unwrap_or(true)
+            })
+            .collect();
+
+        exes.iter()
+            .find(|p| {
+                let stem = p.file_stem().and_then(|s| s.to_str()).map(normalize);
+                stem.map(|s| wanted.contains(&s)).unwrap_or(false)
+            })
+            .or_else(|| exes.first())
+            .cloned()
+    }
+
+    pub fn find_match(apps: &[SystemApp], item: &LocalCandidateInput) -> Option<InstalledAppRecord> {
+        let mut wanted: Vec<String> = std::iter::once(item.app_id.as_str())
+            .chain(item.names.iter().map(String::as_str))
+            .map(normalize)
+            .filter(|s| s.len() >= 3)
+            .collect();
+        wanted.dedup();
+        if wanted.is_empty() {
+            return None;
+        }
+
+        apps.iter()
+            .filter(|a| wanted.contains(&normalize(strip_version(&a.display_name))))
+            .find_map(|a| {
+                let exe = resolve_executable(a, &wanted)?;
+                let install_dir = a
+                    .install_location
+                    .clone()
+                    .filter(|d| d.is_dir())
+                    .or_else(|| exe.parent().map(Path::to_path_buf))
+                    .unwrap_or_default();
+                Some(InstalledAppRecord {
+                    app_id: item.app_id.clone(),
+                    version: if a.version.is_empty() {
+                        item.version.clone()
+                    } else {
+                        a.version.clone()
+                    },
+                    executable_path: exe.to_string_lossy().to_string(),
+                    install_dir: install_dir.to_string_lossy().to_string(),
+                    installed_at: "Detected in Windows installed programs".to_string(),
+                    source: "system".to_string(),
+                    uninstall_command: a.uninstall_command.clone(),
+                })
+            })
+    }
+
+    #[cfg(target_os = "windows")]
+    pub fn scan() -> Vec<SystemApp> {
+        use winreg::enums::{HKEY_CURRENT_USER, HKEY_LOCAL_MACHINE, KEY_READ, KEY_WOW64_32KEY, KEY_WOW64_64KEY};
+        use winreg::RegKey;
+
+        const UNINSTALL: &str = r"Software\Microsoft\Windows\CurrentVersion\Uninstall";
+        let roots = [
+            (HKEY_CURRENT_USER, KEY_READ),
+            (HKEY_LOCAL_MACHINE, KEY_READ | KEY_WOW64_64KEY),
+            (HKEY_LOCAL_MACHINE, KEY_READ | KEY_WOW64_32KEY),
+        ];
+
+        let mut out = Vec::new();
+        for (hive, flags) in roots {
+            let Ok(key) = RegKey::predef(hive).open_subkey_with_flags(UNINSTALL, flags) else {
+                continue;
+            };
+            for sub in key.enum_keys().flatten() {
+                let Ok(app) = key.open_subkey_with_flags(&sub, flags) else {
+                    continue;
+                };
+                let get = |name: &str| -> Option<String> {
+                    app.get_value::<String, _>(name)
+                        .ok()
+                        .map(|s| s.trim().to_string())
+                        .filter(|s| !s.is_empty())
+                };
+                let Some(display_name) = get("DisplayName") else {
+                    continue;
+                };
+                out.push(SystemApp {
+                    display_name,
+                    version: get("DisplayVersion").unwrap_or_default(),
+                    install_location: get("InstallLocation")
+                        .map(|s| PathBuf::from(s.trim_matches('"'))),
+                    display_icon: get("DisplayIcon"),
+                    uninstall_command: get("UninstallString"),
+                });
+            }
+        }
+        out
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    pub fn scan() -> Vec<SystemApp> {
+        Vec::new()
+    }
+}
+
 #[tauri::command]
 fn get_installed_apps(
     app: AppHandle,
@@ -519,6 +708,23 @@ fn get_installed_apps(
 
     // Prune entries whose executable no longer exists on disk
     reg.retain(|_, rec| Path::new(&rec.executable_path).exists());
+
+    // Detect apps installed with their own installers (listed in Windows'
+    // installed programs). This wins over a "github-release" record, which only
+    // points at the downloaded installer, not the installed app.
+    let system_apps = system_installed::scan();
+    for item in &candidates {
+        let keep_existing = reg
+            .get(&item.app_id)
+            .map(|rec| rec.source != "github-release" && rec.source != "system")
+            .unwrap_or(false);
+        if keep_existing {
+            continue;
+        }
+        if let Some(found) = system_installed::find_match(&system_apps, item) {
+            reg.insert(item.app_id.clone(), found);
+        }
+    }
 
     // Also auto-detect local sibling builds inside 'Gloria Repoz' if present
     if let Some(workspace_root) = detect_workspace_parent() {
@@ -543,6 +749,7 @@ fn get_installed_apps(
                             install_dir,
                             installed_at: "Local Workspace Build".to_string(),
                             source: "local-workspace".to_string(),
+                            uninstall_command: None,
                         },
                     );
                     break;
@@ -815,6 +1022,7 @@ async fn install_app_release(
         install_dir: install_dir.to_string_lossy().to_string(),
         installed_at: "Installed via GloriaLauncher".to_string(),
         source: "github-release".to_string(),
+        uninstall_command: None,
     };
 
     let mut reg = load_registry(&app);
@@ -906,6 +1114,7 @@ fn register_custom_executable(
         install_dir,
         installed_at: "Custom Local Executable".to_string(),
         source: "custom".to_string(),
+        uninstall_command: None,
     };
 
     let mut reg = load_registry(&app);
@@ -936,7 +1145,26 @@ fn launch_installed_app(app: AppHandle, app_id: String) -> Result<(), String> {
 fn uninstall_app(app: AppHandle, app_id: String) -> Result<(), String> {
     let mut reg = load_registry(&app);
     if let Some(record) = reg.remove(&app_id) {
-        if record.source == "github-release" {
+        if record.source == "system" {
+            // Hand off to the app's own uninstaller; if the user cancels it, the
+            // next scan simply detects the app again.
+            let Some(cmd) = record.uninstall_command.as_deref() else {
+                return Err("No uninstaller is registered for this app.".to_string());
+            };
+            #[cfg(target_os = "windows")]
+            {
+                use std::os::windows::process::CommandExt;
+                const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+                Command::new("cmd")
+                    .arg("/C")
+                    .raw_arg(cmd)
+                    .creation_flags(CREATE_NO_WINDOW)
+                    .spawn()
+                    .map_err(|e| format!("Failed to start uninstaller: {e}"))?;
+            }
+            #[cfg(not(target_os = "windows"))]
+            let _ = cmd;
+        } else if record.source == "github-release" {
             let dir_path = Path::new(&record.install_dir);
             let is_shared_downloads = dir_path
                 .file_name()
@@ -999,6 +1227,35 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn matches_system_app_names() {
+        use system_installed::{normalize, parse_icon_path, strip_version};
+        assert_eq!(strip_version("Keystroker 0.1.0"), "Keystroker");
+        assert_eq!(strip_version("Draco v1.0.0"), "Draco");
+        assert_eq!(strip_version("Winget Baby"), "Winget Baby");
+        assert_eq!(normalize("Faceit-Autopilot"), "faceitautopilot");
+        assert_eq!(
+            parse_icon_path(r#""C:\Apps\Draco\Draco.exe",0"#),
+            PathBuf::from(r"C:\Apps\Draco\Draco.exe")
+        );
+    }
+
+    /// Run with `cargo test live_scan -- --ignored --nocapture` on a machine with Gloria apps.
+    #[test]
+    #[ignore]
+    fn live_scan_detects_installed_apps() {
+        let apps = system_installed::scan();
+        for id in ["Keystroker", "Carmen", "Draco", "Lumina", "Kintsugi", "Inscriptio", "DefaultFast", "Ada"] {
+            let item = LocalCandidateInput {
+                app_id: id.to_string(),
+                version: "0".to_string(),
+                candidates: vec![],
+                names: vec![id.to_string()],
+            };
+            println!("{id}: {:?}", system_installed::find_match(&apps, &item).map(|r| (r.version, r.executable_path)));
+        }
+    }
 
     #[test]
     fn compares_versions() {
