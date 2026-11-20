@@ -9,6 +9,8 @@ import { AppBadgeIcon } from "./AppBadgeIcon";
 import { formatReadableDate } from "../services/githubService";
 import { isTauriDesktop } from "../services/platformService";
 import type { SortOption } from "./Toolbar";
+import { useTranslation } from "react-i18next";
+import { activeLocale } from "../i18n";
 
 interface AppTableViewProps {
   installedApps: GloriaAppEntry[];
@@ -17,6 +19,8 @@ interface AppTableViewProps {
   activeAppId: string | null;
   downloadingMap: Record<string, DownloadProgressPayload>;
   isSyncing?: boolean;
+  /** True when the catalog itself is empty (not just filtered out). */
+  isCatalogEmpty?: boolean;
   sortBy: SortOption;
   onChangeSortBy: (sort: SortOption) => void;
   onSelectApp: (app: GloriaAppEntry) => void;
@@ -31,12 +35,14 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
   activeAppId,
   downloadingMap,
   isSyncing,
+  isCatalogEmpty,
   sortBy,
   onChangeSortBy,
   onSelectApp,
   onPrimaryAction,
   onOpenDetails,
 }) => {
+  const { t } = useTranslation();
   const isDesktop = isTauriDesktop();
   const combinedApps = [
     ...installedApps.map((app) => ({ app, isInstalled: true })),
@@ -53,7 +59,7 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
             onClick={() => onChangeSortBy("name-asc")}
             className="col-span-5 flex items-center gap-1 text-left hover:text-white transition-colors cursor-pointer"
           >
-            <span>APP</span>
+            <span>{t("table.app")}</span>
             {sortBy === "name-asc" && (
               <ArrowUp size={10} className="text-[#38bdf8]" />
             )}
@@ -64,28 +70,28 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
             onClick={() => onChangeSortBy("status")}
             className="col-span-2 flex items-center gap-1 text-left hover:text-white transition-colors cursor-pointer"
           >
-            <span>STATUS</span>
+            <span>{t("table.status")}</span>
             {sortBy === "status" && (
               <ArrowUp size={10} className="text-[#38bdf8]" />
             )}
           </button>
 
-          <div className="col-span-1">VERSION</div>
+          <div className="col-span-1">{t("table.version")}</div>
 
           <button
             type="button"
             onClick={() => onChangeSortBy("updated-desc")}
             className="col-span-1 flex items-center gap-1 text-left hover:text-white transition-colors cursor-pointer"
           >
-            <span>RELEASED</span>
+            <span>{t("table.released")}</span>
             {sortBy === "updated-desc" && (
               <ArrowDown size={10} className="text-[#38bdf8]" />
             )}
           </button>
 
-          <div className="col-span-1">AUTHOR</div>
+          <div className="col-span-1">{t("table.author")}</div>
 
-          <div className="col-span-2 text-right">ACTION</div>
+          <div className="col-span-2 text-right">{t("table.action")}</div>
         </div>
 
         {/* Table Body Rows */}
@@ -99,13 +105,13 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
             app.version
           ).replace(/^v/i, "");
 
-          let primaryLabel = "INSTALL";
+          let primaryLabel = t("app.install");
           if (progress) {
             primaryLabel = `${Math.round(progress.percent)}%`;
           } else if (isInstalled) {
-            primaryLabel = "OPEN";
+            primaryLabel = t("app.open");
           } else if (!isDesktop) {
-            primaryLabel = app.webUrl ? "LAUNCH" : "INSTALL";
+            primaryLabel = app.webUrl ? t("app.launch") : t("app.install");
           }
 
           return (
@@ -150,15 +156,13 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
               <div className="col-span-2 pr-2">
                 {isInstalled ? (
                   <span className="inline-block px-2 py-0.5 bg-[#121215] border border-[#2a2a32] font-mono-code text-[9.5px] font-semibold tracking-[0.14em] text-[#b4b4c0] uppercase">
-                    {isDesktop ? "INSTALLED" : "PINNED / READY"}
+                    {isDesktop ? t("app.status.installed") : t("app.status.pinnedReady")}
                   </span>
                 ) : (
                   <span className="inline-block px-2 py-0.5 bg-[#111520] border border-[#222b40] font-mono-code text-[9.5px] font-semibold tracking-[0.14em] text-[#8ab4f8] uppercase">
-                    {isDesktop
-                      ? "AVAILABLE TO INSTALL"
-                      : app.webUrl
-                      ? "WEB READY"
-                      : "AVAILABLE TO INSTALL"}
+                    {!isDesktop && app.webUrl
+                      ? t("app.status.webReady")
+                      : t("app.status.availableToInstall")}
                   </span>
                 )}
               </div>
@@ -176,7 +180,7 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
 
               {/* Col 4: Released Date */}
               <div className="col-span-1 text-[12px] text-[#8a8a96]">
-                {formatReadableDate(app.updatedAt)}
+                {formatReadableDate(app.updatedAt, activeLocale())}
               </div>
 
               {/* Col 5: Author */}
@@ -218,7 +222,7 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
                     e.stopPropagation();
                     onOpenDetails(app);
                   }}
-                  title="Inspect App"
+                  title={t("table.inspectTooltip")}
                   className="w-8 h-8 bg-[#121216] hover:bg-[#1e1e24] border border-[#2e2e38] hover:border-[#4b4b5a] text-[#a1a1aa] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
                 >
                   <MoreHorizontal size={14} />
@@ -234,12 +238,12 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
               <>
                 <Loader2 size={18} className="animate-spin text-[#00f0ff]" />
                 <p className="font-mono-code text-xs tracking-[0.16em] text-[#7c7c88] uppercase">
-                  FETCHING RELEASES FROM @PROJECTGLORIA...
+                  {t("app.fetching")}
                 </p>
               </>
             ) : (
               <p className="font-mono-code text-xs tracking-[0.16em] text-[#7c7c88] uppercase">
-                NO GLORIA APPS MATCH YOUR FILTER CRITERIA.
+                {isCatalogEmpty ? t("app.catalogUnavailable") : t("app.noMatch")}
               </p>
             )}
           </div>

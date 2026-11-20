@@ -2,12 +2,16 @@ import type { GloriaAppEntry, ReleaseAssetInfo } from "../types/app";
 import { GLORIA_CATALOG } from "../data/gloriaCatalog";
 import {
   filterReposWithReleasesDesktop,
+  isTauriDesktop,
   listPublicReposDesktop,
 } from "./platformService";
 
 const GITHUB_OWNER = "projectGloria";
-const CACHE_KEY = "gloria_launcher_gh_cache_v3";
-const RELEASE_CACHE_PREFIX = "gloria_launcher_rel_v3_";
+const CACHE_KEY = "gloria_launcher_gh_cache_v4";
+const RELEASE_CACHE_PREFIX = "gloria_launcher_rel_v4_";
+/** Build-time snapshot published next to the web app (see scripts/build-catalog.mjs). */
+const HOSTED_SNAPSHOT_URL =
+  "https://projectgloria.github.io/GloriaLauncher/catalog.json";
 const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
 
 interface GitHubRepoResponse {
@@ -364,6 +368,117 @@ async function fetchRepoList(githubToken?: string): Promise<GitHubRepoResponse[]
   }));
 }
 
+interface CatalogSnapshot {
+  generatedAt: string;
+  repos: Array<GitHubRepoResponse & { release: ReleaseInfoData }>;
+}
+
+/**
+ * Loads the catalog snapshot generated in CI. It costs zero GitHub API quota, so
+ * it works for anonymous visitors even when api.github.com rate-limits their IP.
+ */
+async function fetchCatalogSnapshot(): Promise<GloriaAppEntry[] | null> {
+  const candidates = [
+    `${import.meta.env.BASE_URL}catalog.json`,
+    HOSTED_SNAPSHOT_URL,
+  ];
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url, { cache: "no-cache" });
+      if (!res.ok) continue;
+      const snap = (await res.json()) as CatalogSnapshot;
+      if (!Array.isArray(snap.repos) || snap.repos.length === 0) continue;
+      return snap.repos.map((repo) => {
+        cacheReleaseData(repo.name, repo.release);
+        return buildAppEntry(repo, repo.release);
+      });
+    } catch {
+      // Try the next candidate
+    }
+  }
+  return null;
+}
+
+function persistSyncedApps(apps: GloriaAppEntry[]): Date {
+  const now = Date.now();
+  // Never cache an empty list: a rate-limited sync would otherwise hide every
+  // app for the whole cache TTL.
+  if (apps.length > 0) {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: now, apps }));
+    } catch {
+      // Ignore quota errors
+    }
+  }
+  return new Date(now);
+}
+
+async function fetchAppsFromLiveSources(
+  githubToken?: string
+): Promise<GloriaAppEntry[]> {
+  const allRepos = (await fetchRepoList(githubToken)).filter(
+    (r) => r.name.toLowerCase() !== "glorialauncher"
+  );
+
+  // On Desktop, the native Rust side detects real GitHub Releases (skipping bare
+  // git tags) and returns their assets without touching the 60 req/hr REST quota.
+  const desktopReleases = await filterReposWithReleasesDesktop(
+    GITHUB_OWNER,
+    allRepos.map((r) => r.name)
+  );
+
+  const appsWithReleases: GloriaAppEntry[] = [];
+
+  if (desktopReleases !== null) {
+    const releaseByRepo = new Map(
+      desktopReleases.map((rel) => [rel.repo.toLowerCase(), rel])
+    );
+    for (const repo of allRepos) {
+      const rel = releaseByRepo.get(repo.name.toLowerCase());
+      if (!rel) continue;
+      const releaseData: ReleaseInfoData = {
+        version: rel.tag.replace(/^v/i, ""),
+        publishedAt: rel.publishedAt || undefined,
+        assets: rel.assets,
+      };
+      cacheReleaseData(repo.name, releaseData);
+      appsWithReleases.push(buildAppEntry(repo, releaseData));
+    }
+    return appsWithReleases;
+  }
+
+  // REST API with bounded concurrency; gives up at the first rate-limit response
+  // so a partial list is never presented as the full catalog.
+  let rateLimited = false;
+  const batchSize = 6;
+  for (let i = 0; i < allRepos.length && !rateLimited; i += batchSize) {
+    const batch = allRepos.slice(i, i + batchSize);
+    const results = await Promise.all(
+      batch.map(async (repo) => {
+        if (rateLimited) return null;
+        try {
+          const relRes = await fetchLatestReleaseRecord(repo.name, githubToken);
+          if (relRes.status === 403 || relRes.status === 429) {
+            rateLimited = true;
+            return null;
+          }
+          if (!relRes.data) return null;
+          return buildAppEntry(repo, relRes.data);
+        } catch {
+          return null;
+        }
+      })
+    );
+    for (const entry of results) {
+      if (entry) appsWithReleases.push(entry);
+    }
+  }
+  if (rateLimited) {
+    throw new Error("GitHub API rate limit reached");
+  }
+  return appsWithReleases;
+}
+
 export async function syncCatalogWithGitHub(
   options: { force?: boolean; githubToken?: string } = {}
 ): Promise<{
@@ -381,6 +496,7 @@ export async function syncCatalogWithGitHub(
         };
         if (
           Array.isArray(parsed.apps) &&
+          parsed.apps.length > 0 &&
           Date.now() - parsed.timestamp < CACHE_TTL_MS
         ) {
           return {
@@ -395,117 +511,45 @@ export async function syncCatalogWithGitHub(
     }
   }
 
-  // Fast single-request GraphQL path when the user provides a GitHub token
-  if (options.githubToken && options.githubToken.trim()) {
-    const gqlApps = await fetchReleasesViaGraphQL(options.githubToken.trim());
-    if (gqlApps) {
-      const now = Date.now();
-      try {
-        localStorage.setItem(
-          CACHE_KEY,
-          JSON.stringify({ timestamp: now, apps: gqlApps })
-        );
-      } catch {
-        // Ignore quota errors
-      }
-      return {
-        apps: gqlApps,
-        checkedAt: new Date(now),
-        fromCache: false,
-      };
+  const token = options.githubToken?.trim();
+
+  // 1. Fast single-request GraphQL path when the user provides a GitHub token
+  if (token) {
+    const gqlApps = await fetchReleasesViaGraphQL(token);
+    if (gqlApps && gqlApps.length > 0) {
+      return { apps: gqlApps, checkedAt: persistSyncedApps(gqlApps), fromCache: false };
     }
   }
 
+  // 2. Web without a token: the CI-built snapshot needs no API quota at all.
+  if (!token && !isTauriDesktop()) {
+    const snapApps = await fetchCatalogSnapshot();
+    if (snapApps) {
+      return { apps: snapApps, checkedAt: persistSyncedApps(snapApps), fromCache: false };
+    }
+  }
+
+  // 3. Live sources (native desktop detection, or the REST API).
   try {
-    const allRepos = (await fetchRepoList(options.githubToken)).filter(
-      (r) => r.name.toLowerCase() !== "glorialauncher"
-    );
-
-    // On Desktop, the native Rust side detects real GitHub Releases (skipping bare
-    // git tags) and returns their assets without touching the 60 req/hr REST quota.
-    const desktopReleases = await filterReposWithReleasesDesktop(
-      GITHUB_OWNER,
-      allRepos.map((r) => r.name)
-    );
-
-    const appsWithReleases: GloriaAppEntry[] = [];
-
-    if (desktopReleases !== null) {
-      const releaseByRepo = new Map(
-        desktopReleases.map((rel) => [rel.repo.toLowerCase(), rel])
-      );
-      for (const repo of allRepos) {
-        const rel = releaseByRepo.get(repo.name.toLowerCase());
-        if (!rel) continue;
-        const releaseData: ReleaseInfoData = {
-          version: rel.tag.replace(/^v/i, ""),
-          publishedAt: rel.publishedAt || undefined,
-          assets: rel.assets,
-        };
-        cacheReleaseData(repo.name, releaseData);
-        appsWithReleases.push(buildAppEntry(repo, releaseData));
-      }
-    } else {
-      // Web mode without a token: check releases via REST API with bounded concurrency
-      let rateLimited = false;
-      const batchSize = 6;
-      for (let i = 0; i < allRepos.length && !rateLimited; i += batchSize) {
-        const batch = allRepos.slice(i, i + batchSize);
-        const results = await Promise.all(
-          batch.map(async (repo) => {
-            if (rateLimited) return null;
-            try {
-              const relRes = await fetchLatestReleaseRecord(
-                repo.name,
-                options.githubToken
-              );
-              if (relRes.status === 403 || relRes.status === 429) {
-                rateLimited = true;
-                return null;
-              }
-              if (!relRes.data) return null;
-              return buildAppEntry(repo, relRes.data);
-            } catch {
-              return null;
-            }
-          })
-        );
-        for (const entry of results) {
-          if (entry) appsWithReleases.push(entry);
-        }
-      }
+    const liveApps = await fetchAppsFromLiveSources(token);
+    if (liveApps.length > 0) {
+      return { apps: liveApps, checkedAt: persistSyncedApps(liveApps), fromCache: false };
     }
-
-    const now = Date.now();
-    try {
-      localStorage.setItem(
-        CACHE_KEY,
-        JSON.stringify({ timestamp: now, apps: appsWithReleases })
-      );
-    } catch {
-      // Ignore quota errors
-    }
-
-    return {
-      apps: appsWithReleases,
-      checkedAt: new Date(now),
-      fromCache: false,
-    };
   } catch {
-    const cached = getCachedSyncedApps();
-    if (cached) {
-      return {
-        apps: cached.apps,
-        checkedAt: cached.checkedAt,
-        fromCache: true,
-      };
-    }
-    return {
-      apps: [],
-      checkedAt: new Date(),
-      fromCache: true,
-    };
+    // Fall through to snapshot / cache
   }
+
+  // 4. Desktop (or token) fallback to the hosted snapshot.
+  const snapApps = await fetchCatalogSnapshot();
+  if (snapApps) {
+    return { apps: snapApps, checkedAt: persistSyncedApps(snapApps), fromCache: false };
+  }
+
+  const cached = getCachedSyncedApps();
+  if (cached && cached.apps.length > 0) {
+    return { apps: cached.apps, checkedAt: cached.checkedAt, fromCache: true };
+  }
+  return { apps: [], checkedAt: new Date(), fromCache: true };
 }
 
 export async function fetchAppReleaseInfo(
@@ -536,24 +580,54 @@ export async function fetchAppReleaseInfo(
   }
 }
 
+const METADATA_ASSET_RE =
+  /\.(blockmap|yml|yaml|json|sig|asc|txt|sha256|sha512|md5|pem)$|checksum|sha256sums?$/i;
+
+/**
+ * Scores a release asset as a Windows installer. Higher is better; null means the
+ * asset should never be picked automatically. Portable builds, CLI-only binaries
+ * and ARM builds rank below real x64 installers.
+ */
+export function scoreInstallerAsset(name: string): number | null {
+  const n = name.toLowerCase();
+  if (METADATA_ASSET_RE.test(n)) return null;
+
+  let score: number;
+  if (/\.exe$/.test(n)) score = /(setup|install)/.test(n) ? 100 : 60;
+  else if (/\.msi$/.test(n)) score = 90;
+  else if (/\.msix(bundle)?$/.test(n)) score = 85;
+  else if (/\.zip$/.test(n)) score = 20;
+  else return null;
+
+  if (/portable/.test(n)) score -= 50;
+  if (/(^|[-_.])cli([-_.]|$)/.test(n)) score -= 30;
+  if (/(arm64|aarch64)/.test(n)) score -= 15;
+  if (/(x64|x86_64|amd64|win64)/.test(n)) score += 2;
+  return score;
+}
+
+/** Picks the release asset the launcher installs: always the installer, never a portable build when an installer exists. */
 export function pickPreferredReleaseAsset(
   assets: ReleaseAssetInfo[]
 ): ReleaseAssetInfo | undefined {
   if (!assets || assets.length === 0) return undefined;
+  let best: ReleaseAssetInfo | undefined;
+  let bestScore = -Infinity;
+  for (const asset of assets) {
+    const score = scoreInstallerAsset(asset.name);
+    if (score !== null && score > bestScore) {
+      best = asset;
+      bestScore = score;
+    }
+  }
+  return best;
+}
 
-  const isMetadataFile = (name: string) =>
-    /\.(blockmap|yml|yaml|json|sig|asc|txt|sha256|md5)$/i.test(name) ||
-    /checksum|sha256sum/i.test(name);
-
-  const installable = assets.filter((a) => !isMetadataFile(a.name));
-  const pool = installable.length > 0 ? installable : assets;
-
-  return (
-    pool.find((a) => /(setup|install).*\.(exe|msi)$/i.test(a.name)) ||
-    pool.find((a) => /\.msi$/i.test(a.name)) ||
-    pool.find((a) => /\.exe$/i.test(a.name)) ||
-    pool.find((a) => /\.zip$/i.test(a.name)) ||
-    pool[0]
+/** Assets ordered for display: preferred installer first, metadata files last. */
+export function sortReleaseAssets(assets: ReleaseAssetInfo[]): ReleaseAssetInfo[] {
+  return [...assets].sort(
+    (a, b) =>
+      (scoreInstallerAsset(b.name) ?? -1000) - (scoreInstallerAsset(a.name) ?? -1000)
   );
 }
 
@@ -574,11 +648,11 @@ export async function fetchRepoReadme(repoId: string): Promise<string> {
   return "";
 }
 
-export function formatReadableDate(isoString: string): string {
+export function formatReadableDate(isoString: string, locale = "en-US"): string {
   try {
     const date = new Date(isoString);
     if (Number.isNaN(date.getTime())) return isoString;
-    return date.toLocaleDateString("en-US", {
+    return date.toLocaleDateString(locale, {
       month: "short",
       day: "numeric",
       year: "numeric",

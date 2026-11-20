@@ -4,6 +4,13 @@ on:
   push:
     branches: ["main"]
   workflow_dispatch:
+  # Rebuild the app catalog snapshot so newly published releases show up
+  # without needing a push to this repository.
+  schedule:
+    - cron: "17 */3 * * *"
+  # Lets other projectGloria repos trigger a refresh right after they release.
+  repository_dispatch:
+    types: [refresh-catalog]
 
 permissions:
   contents: read
@@ -29,6 +36,11 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Build app catalog snapshot
+        run: node scripts/build-catalog.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build web app
         run: npm run build:web

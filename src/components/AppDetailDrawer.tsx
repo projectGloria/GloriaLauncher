@@ -25,7 +25,11 @@ import {
   fetchRepoReadme,
   formatByteSize,
   formatReadableDate,
+  pickPreferredReleaseAsset,
+  sortReleaseAssets,
 } from "../services/githubService";
+import { useTranslation } from "react-i18next";
+import { activeLocale } from "../i18n";
 import {
   isTauriDesktop,
   openExternalUrl,
@@ -70,6 +74,7 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
   } | null>(null);
   const [loadingReleases, setLoadingReleases] = useState(false);
 
+  const { t } = useTranslation();
   const isDesktop = isTauriDesktop();
   const isInstalled = Boolean(installedRecord);
 
@@ -132,6 +137,10 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
     }
   };
 
+  const recommendedAssetName = releaseData
+    ? pickPreferredReleaseAsset(releaseData.assets)?.name
+    : undefined;
+
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-[2px]">
       <div
@@ -169,7 +178,7 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
                   V{releaseData?.version || installedRecord?.version || app.version}
                 </span>
                 <span className="px-2 py-0.5 bg-[#141418] border border-[#26262f] font-mono-code text-[10px] tracking-[0.14em] text-[#a1a1aa] uppercase">
-                  {app.category}
+                  {t(`categories.${app.category}`, { defaultValue: app.category })}
                 </span>
               </div>
               <p className="text-sm text-[#a1a1aa] mt-1">{app.subtitle}</p>
@@ -179,6 +188,8 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
           <button
             type="button"
             onClick={onClose}
+            aria-label={t("drawer.close")}
+            title={t("drawer.close")}
             className="w-8 h-8 flex items-center justify-center bg-[#141418] hover:bg-[#22222a] border border-[#282832] text-[#a1a1aa] hover:text-white transition-colors cursor-pointer shrink-0"
           >
             <X size={15} />
@@ -197,17 +208,17 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
               {downloadProgress ? (
                 <>
                   <Loader2 size={13} className="animate-spin" />
-                  <span>INSTALLING ({Math.round(downloadProgress.percent)}%)</span>
+                  <span>{t("drawer.installing", { percent: Math.round(downloadProgress.percent) })}</span>
                 </>
               ) : isInstalled ? (
                 <>
                   <Play size={13} fill="currentColor" />
-                  <span>{isDesktop ? "OPEN APP" : "LAUNCH / OPEN"}</span>
+                  <span>{isDesktop ? t("drawer.openApp") : t("drawer.launchOpen")}</span>
                 </>
               ) : (
                 <>
                   <Download size={13} />
-                  <span>{isDesktop ? "INSTALL" : app.webUrl ? "LAUNCH WEB" : "GET APP"}</span>
+                  <span>{isDesktop ? t("app.install") : app.webUrl ? t("app.launchWeb") : t("app.getApp")}</span>
                 </>
               )}
             </button>
@@ -219,7 +230,7 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
                 className="h-9 px-3.5 bg-[#16161c] hover:bg-[#202028] border border-[#2c2c36] text-[#e4e4e7] font-mono-code text-[10.5px] tracking-[0.14em] uppercase flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <Globe size={13} />
-                <span>Open Web / Store</span>
+                <span>{t("drawer.openWebStore")}</span>
               </button>
             )}
 
@@ -228,7 +239,7 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
               onClick={() => openExternalUrl(app.repoUrl)}
               className="h-9 px-3.5 bg-[#16161c] hover:bg-[#202028] border border-[#2c2c36] text-[#e4e4e7] font-mono-code text-[10.5px] tracking-[0.14em] uppercase flex items-center gap-1.5 transition-colors cursor-pointer"
             >
-              <span>GitHub Repo</span>
+              <span>{t("drawer.githubRepo")}</span>
               <ArrowUpRight size={13} />
             </button>
           </div>
@@ -238,11 +249,11 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
               <button
                 type="button"
                 onClick={handleBindLocalExe}
-                title="Bind a local .exe binary from your disk"
+                title={t("drawer.locateExeTooltip")}
                 className="h-9 px-3 bg-[#16161c] hover:bg-[#202028] border border-[#2c2c36] text-[#a1a1aa] hover:text-white font-mono-code text-[10px] tracking-[0.12em] uppercase flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <HardDrive size={12} />
-                <span>Locate .exe</span>
+                <span>{t("drawer.locateExe")}</span>
               </button>
             )}
 
@@ -250,7 +261,7 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
               <button
                 type="button"
                 onClick={() => openAppInstallFolder(app.id)}
-                title="Open Install Folder"
+                title={t("drawer.openFolderTooltip")}
                 className="h-9 w-9 bg-[#16161c] hover:bg-[#202028] border border-[#2c2c36] text-[#a1a1aa] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
               >
                 <FolderOpen size={14} />
@@ -263,11 +274,11 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
               title={
                 isDesktop
                   ? isInstalled
-                    ? "Uninstall App"
-                    : "Not Installed"
+                    ? t("drawer.uninstallTooltip")
+                    : t("drawer.notInstalled")
                   : isInstalled
-                  ? "Unpin from Top Suite"
-                  : "Pin to Top Suite"
+                  ? t("drawer.unpinTooltip")
+                  : t("drawer.pinTooltip")
               }
               className="h-9 px-3 bg-[#16161c] hover:bg-[#241317] border border-[#2c2c36] hover:border-[#dc143c] text-[#a1a1aa] hover:text-white font-mono-code text-[10px] tracking-[0.12em] uppercase flex items-center gap-1.5 transition-colors cursor-pointer"
             >
@@ -275,18 +286,18 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
                 isInstalled ? (
                   <>
                     <Trash2 size={12} />
-                    <span>Uninstall</span>
+                    <span>{t("drawer.uninstall")}</span>
                   </>
                 ) : null
               ) : isInstalled ? (
                 <>
                   <PinOff size={12} />
-                  <span>Unpin</span>
+                  <span>{t("drawer.unpin")}</span>
                 </>
               ) : (
                 <>
                   <Pin size={12} />
-                  <span>Pin to Top</span>
+                  <span>{t("drawer.pinToTop")}</span>
                 </>
               )}
             </button>
@@ -298,7 +309,7 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
           {/* Overview & Metadata Grid */}
           <div className="space-y-3">
             <h3 className="font-mono-code text-[10.5px] font-semibold tracking-[0.18em] text-[#7c7c88] uppercase">
-              OVERVIEW
+              {t("drawer.overview")}
             </h3>
             <p className="text-sm text-[#d4d4dc] leading-relaxed">
               {app.description}
@@ -307,15 +318,15 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2">
               <div className="p-3 bg-[#121216] border border-[#1f1f26]">
                 <div className="font-mono-code text-[9.5px] tracking-[0.14em] text-[#7c7c88] uppercase">
-                  UPDATED
+                  {t("drawer.updated")}
                 </div>
                 <div className="font-mono-code text-xs text-[#f4f4f6] mt-1">
-                  {formatReadableDate(app.updatedAt)}
+                  {formatReadableDate(app.updatedAt, activeLocale())}
                 </div>
               </div>
               <div className="p-3 bg-[#121216] border border-[#1f1f26]">
                 <div className="font-mono-code text-[9.5px] tracking-[0.14em] text-[#7c7c88] uppercase">
-                  PLATFORMS
+                  {t("drawer.platforms")}
                 </div>
                 <div className="font-mono-code text-xs text-[#f4f4f6] mt-1 truncate">
                   {app.platforms.join(", ")}
@@ -323,7 +334,7 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
               </div>
               <div className="p-3 bg-[#121216] border border-[#1f1f26]">
                 <div className="font-mono-code text-[9.5px] tracking-[0.14em] text-[#7c7c88] uppercase">
-                  TECH STACK
+                  {t("drawer.techStack")}
                 </div>
                 <div className="font-mono-code text-xs text-[#f4f4f6] mt-1 truncate">
                   {app.techStack.slice(0, 2).join(" · ")}
@@ -331,7 +342,7 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
               </div>
               <div className="p-3 bg-[#121216] border border-[#1f1f26]">
                 <div className="font-mono-code text-[9.5px] tracking-[0.14em] text-[#7c7c88] uppercase">
-                  STATUS
+                  {t("drawer.status")}
                 </div>
                 <div
                   className="font-mono-code text-xs font-semibold mt-1"
@@ -339,9 +350,9 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
                 >
                   {isInstalled
                     ? isDesktop
-                      ? "INSTALLED"
-                      : "PINNED"
-                    : "AVAILABLE"}
+                      ? t("app.status.installed")
+                      : t("app.status.pinned")
+                    : t("app.status.available")}
                 </div>
               </div>
             </div>
@@ -349,7 +360,7 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
             {installedRecord && isDesktop && (
               <div className="p-3 bg-[#11151c] border border-[#1e293b] font-mono-code text-[11px] text-[#94a3b8] break-all">
                 <span className="text-[#38bdf8] uppercase mr-2">
-                  LOCAL BINARY:
+                  {t("drawer.localBinary")}
                 </span>
                 {installedRecord.executablePath}
               </div>
@@ -360,33 +371,42 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
           <div className="space-y-3 pt-2 border-t border-[#1f1f25]">
             <div className="flex items-center justify-between">
               <h3 className="font-mono-code text-[10.5px] font-semibold tracking-[0.18em] text-[#7c7c88] uppercase">
-                GITHUB RELEASES &amp; INSTALLERS
+                {t("drawer.releases")}
               </h3>
               <button
                 type="button"
                 onClick={() => openExternalUrl(`${app.repoUrl}/releases`)}
                 className="font-mono-code text-[10px] tracking-[0.14em] text-[#38bdf8] hover:underline uppercase cursor-pointer"
               >
-                View All Releases ↗
+                {t("drawer.viewAllReleases")}
               </button>
             </div>
 
             {loadingReleases ? (
               <div className="p-4 bg-[#121216] border border-[#1f1f26] flex items-center gap-2 font-mono-code text-xs text-[#8a8a96]">
                 <Loader2 size={14} className="animate-spin" />
-                <span>Checking GitHub Releases...</span>
+                <span>{t("drawer.checkingReleases")}</span>
               </div>
             ) : releaseData && releaseData.assets.length > 0 ? (
               <div className="space-y-2">
-                {releaseData.assets.map((asset) => (
+                {sortReleaseAssets(releaseData.assets).map((asset) => {
+                  const isRecommended = asset.name === recommendedAssetName;
+                  return (
                   <div
                     key={asset.name}
-                    className="p-3 bg-[#121216] hover:bg-[#17171c] border border-[#22222a] flex items-center justify-between gap-3"
+                    className={`p-3 bg-[#121216] hover:bg-[#17171c] border flex items-center justify-between gap-3 ${
+                      isRecommended ? "border-[#2c4a3a]" : "border-[#22222a]"
+                    }`}
                   >
                     <div className="min-w-0">
                       <div className="font-mono-code text-xs text-[#f4f4f6] truncate">
                         {asset.name}
                       </div>
+                      {isRecommended && (
+                        <div className="inline-block mt-1 px-1.5 py-[1px] bg-[#0f1f17] border border-[#24503a] font-mono-code text-[9px] font-semibold tracking-[0.14em] text-[#4ade80] uppercase">
+                          {t("drawer.recommended")}
+                        </div>
+                      )}
                       <div className="font-mono-code text-[10px] text-[#7c7c88] mt-0.5">
                         {asset.size > 0 ? `${formatByteSize(asset.size)} · ` : ""}v{releaseData.version}
                       </div>
@@ -406,17 +426,16 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
                       className="px-3 py-1.5 bg-[#f2f1ee] hover:bg-white text-[#0b0b0c] font-mono-code text-[10px] font-bold tracking-[0.14em] uppercase flex items-center gap-1.5 shrink-0 cursor-pointer"
                     >
                       <Download size={11} />
-                      <span>{isDesktop ? "INSTALL" : "DOWNLOAD"}</span>
+                      <span>{isDesktop ? t("app.install") : t("app.download")}</span>
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="p-4 bg-[#121216] border border-[#1f1f26] flex items-center justify-between gap-3">
                 <div className="text-xs text-[#8a8a96]">
-                  No pre-built binary release asset published yet, or built from
-                  source. You can download the source archive or open the
-                  repository directly.
+                  {t("drawer.noAssets")}
                 </div>
                 <button
                   type="button"
@@ -427,7 +446,7 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
                   }
                   className="px-3 py-1.5 bg-[#1b1b22] hover:bg-[#272732] border border-[#2e2e3a] text-[#e4e4e7] font-mono-code text-[10px] tracking-[0.14em] uppercase shrink-0 cursor-pointer"
                 >
-                  Download ZIP
+                  {t("drawer.downloadZip")}
                 </button>
               </div>
             )}
@@ -437,13 +456,13 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
           <div className="space-y-3 pt-2 border-t border-[#1f1f25]">
             <div className="flex items-center gap-2 font-mono-code text-[10.5px] font-semibold tracking-[0.18em] text-[#7c7c88] uppercase">
               <FileCode2 size={13} />
-              <span>README.MD PREVIEW</span>
+              <span>{t("drawer.readmePreview")}</span>
             </div>
 
             {loadingReadme ? (
               <div className="p-6 bg-[#111115] border border-[#1f1f25] flex items-center gap-2 font-mono-code text-xs text-[#8a8a96]">
                 <Loader2 size={14} className="animate-spin" />
-                <span>Loading repository README from GitHub...</span>
+                <span>{t("drawer.loadingReadme")}</span>
               </div>
             ) : readme ? (
               <pre className="p-4 bg-[#09090b] border border-[#1f1f25] font-mono-code text-[11.5px] text-[#b4b4c0] whitespace-pre-wrap leading-relaxed overflow-x-auto max-h-96">
@@ -451,7 +470,7 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
               </pre>
             ) : (
               <div className="p-4 bg-[#111115] border border-[#1f1f25] text-xs text-[#7c7c88]">
-                No README.md found on default branch.
+                {t("drawer.noReadme")}
               </div>
             )}
           </div>

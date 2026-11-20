@@ -17,6 +17,7 @@ import {
   closeWindow,
   openExternalUrl,
 } from "../services/platformService";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 export type ActivePageMode = "launcher" | "showcase";
 
@@ -105,11 +106,13 @@ export const Titlebar: React.FC<TitlebarProps> = ({
           </button>
         )}
 
+        <LanguageSwitcher />
+
         <button
           type="button"
           onClick={() => openExternalUrl("https://github.com/projectGloria")}
           className="hidden lg:flex items-center gap-1 px-3 h-full border-l border-[#1f1f24] text-[#8a8a96] hover:text-white hover:bg-[#141418] font-mono-code text-[10px] tracking-[0.14em] uppercase transition-colors cursor-pointer"
-          title="Open @projectGloria on GitHub"
+          title={t("titlebar.githubTooltip")}
         >
           <span>@projectGloria</span>
           <ExternalLink size={10} />

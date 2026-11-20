@@ -10,6 +10,7 @@ import {
 import type { GloriaAppEntry, InstalledAppRecord } from "../types/app";
 import { AppBadgeIcon } from "./AppBadgeIcon";
 import { isTauriDesktop, openExternalUrl } from "../services/platformService";
+import { Trans, useTranslation } from "react-i18next";
 
 interface ShowcaseViewProps {
   apps: GloriaAppEntry[];
@@ -27,6 +28,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
   onPrimaryAction,
 }) => {
   const [copied, setCopied] = React.useState(false);
+  const { t } = useTranslation();
   const isDesktop = isTauriDesktop();
 
   const handleCopyUrl = () => {
@@ -40,30 +42,28 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
       {/* SECTION 01: EDITORIAL HERO (getartcraft.com/apps style) */}
       <section className="max-w-7xl mx-auto px-6 pt-14 pb-16 border-x border-[#1f1f24]">
         <div className="flex items-center gap-3 font-mono-code text-[11px] tracking-[0.2em] text-[#8a8a96] uppercase mb-5">
-          <span className="text-[#f2f1ee] font-semibold">01 / GLORIA APPS</span>
+          <span className="text-[#f2f1ee] font-semibold">{t("showcase.kicker")}</span>
           <span>·</span>
-          <span>{apps.length} APPS</span>
+          <span>{t("showcase.appsCount", { count: apps.length })}</span>
           <span>·</span>
-          <span>OPEN SOURCE</span>
+          <span>{t("showcase.openSource")}</span>
           <span>·</span>
-          <span>LOCAL-FIRST</span>
+          <span>{t("showcase.localFirst")}</span>
         </div>
 
         <h1 className="font-display font-extrabold text-4xl sm:text-6xl tracking-tight text-[#f4f4f6] leading-[1.06] max-w-4xl">
-          {apps.length} tools.{" "}
+          {t("showcase.heroTitle", { count: apps.length })}{" "}
           <span className="font-serif-editorial italic font-normal text-[#dc143c]">
-            One craft
+            {t("showcase.heroAccent")}
           </span>
           .
         </h1>
 
         <p className="mt-6 text-base sm:text-lg text-[#a1a1aa] max-w-3xl leading-relaxed">
-          Media conversion, GPU terminal emulation, microsecond NTFS file search,
-          segmented downloads, interactive React 19 lessons, Counter-Strike 2
-          craft studios, AI quota dashboards, VS Code neon themes, browser
-          containers, and Android utilities. Native, open-source apps from{" "}
-          <span className="text-[#f2f1ee] font-medium">@projectGloria</span>,
-          built for speed and zero cloud lock-in.
+          <Trans
+            i18nKey="showcase.heroBody"
+            components={{ 1: <span className="text-[#f2f1ee] font-medium" /> }}
+          />
         </p>
 
         {/* Primary CTA Buttons */}
@@ -74,7 +74,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
             className="h-11 px-6 bg-[#f2f1ee] hover:bg-white text-[#0b0b0c] font-mono-code text-xs font-bold tracking-[0.16em] uppercase flex items-center gap-2 transition-colors cursor-pointer"
           >
             <LayoutGrid size={14} />
-            <span>Open Suite Launcher</span>
+            <span>{t("showcase.openLauncher")}</span>
           </button>
 
           {!isDesktop && (
@@ -88,7 +88,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
               className="h-11 px-5 bg-[#141418] hover:bg-[#1e1e24] border border-[#2e2e38] text-[#f2f1ee] font-mono-code text-xs font-semibold tracking-[0.15em] uppercase flex items-center gap-2 transition-colors cursor-pointer"
             >
               <Download size={14} />
-              <span>Download Desktop Launcher</span>
+              <span>{t("showcase.downloadDesktop")}</span>
             </button>
           )}
 
@@ -99,7 +99,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
             }
             className="h-11 px-5 bg-[#121215] hover:bg-[#1a1a20] border border-[#26262e] text-[#a1a1aa] hover:text-white font-mono-code text-xs tracking-[0.15em] uppercase flex items-center gap-2 transition-colors cursor-pointer"
           >
-            <span>Browse on GitHub</span>
+            <span>{t("showcase.browseGithub")}</span>
             <ArrowUpRight size={14} />
           </button>
 
@@ -109,7 +109,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
             className="h-11 px-4 bg-[#121215] hover:bg-[#1a1a20] border border-[#26262e] text-[#8a8a96] hover:text-white font-mono-code text-[11px] tracking-[0.14em] uppercase flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             {copied ? <Check size={13} className="text-[#22c55e]" /> : <Copy size={13} />}
-            <span>{copied ? "Copied Link" : "Copy Link"}</span>
+            <span>{copied ? t("showcase.copiedLink") : t("showcase.copyLink")}</span>
           </button>
         </div>
 
@@ -117,9 +117,8 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
         <div className="mt-6 inline-flex items-center gap-2.5 px-3.5 py-2 bg-[#121216] border border-[#23232c] text-xs text-[#9ca3af]">
           <Sparkles size={13} className="text-[#dc143c] shrink-0" />
           <span>
-            <strong className="text-[#f2f1ee]">Recommended:</strong>{" "}
-            GloriaLauncher runs as a native Windows desktop app that installs
-            and launches every tool below, and can also be built for the web.
+            <strong className="text-[#f2f1ee]">{t("showcase.recommendedLabel")}</strong>{" "}
+            {t("showcase.recommendedBody")}
           </span>
         </div>
 
@@ -154,10 +153,10 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
         <div className="px-6 py-8 border-b border-[#1f1f24] flex flex-col sm:flex-row sm:items-end justify-between gap-4 bg-[#0d0d10]">
           <div>
             <div className="font-mono-code text-[11px] tracking-[0.2em] text-[#8a8a96] uppercase mb-2">
-              02 / THE LINEUP
+              {t("showcase.lineupKicker")}
             </div>
             <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#f4f4f6]">
-              Pick a craft to explore
+              {t("showcase.lineupTitle")}
             </h2>
           </div>
           <button
@@ -165,7 +164,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
             onClick={onSwitchToLauncher}
             className="font-mono-code text-[11px] tracking-[0.16em] text-[#38bdf8] hover:underline uppercase cursor-pointer"
           >
-            Switch to compact Grid / Table View →
+            {t("showcase.switchToLauncher")}
           </button>
         </div>
 
@@ -185,7 +184,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                   <div className="flex items-center justify-between font-mono-code text-[10.5px] tracking-[0.16em] text-[#7c7c88] uppercase mb-5">
                     <span>
                       <strong className="text-[#f4f4f6]">{num}</strong> ·{" "}
-                      {app.category}
+                      {t(`categories.${app.category}`, { defaultValue: app.category })}
                     </span>
                     <span
                       style={{ color: app.accentColor }}
@@ -252,7 +251,7 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                       }}
                       className="font-mono-code text-[11px] font-semibold tracking-[0.14em] text-[#e4e4e7] group-hover:text-white uppercase flex items-center gap-1 cursor-pointer"
                     >
-                      <span>Explore {app.displayName}</span>
+                      <span>{t("showcase.explore", { name: app.displayName })}</span>
                       <ArrowUpRight size={13} />
                     </button>
 
@@ -265,10 +264,10 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
                       className="px-3 py-1 bg-[#1b1b22] hover:bg-[#f2f1ee] text-[#d4d4dc] hover:text-[#0b0b0c] border border-[#2e2e38] font-mono-code text-[10px] font-semibold tracking-[0.14em] uppercase transition-colors cursor-pointer"
                     >
                       {isInstalled
-                        ? "OPEN"
+                        ? t("app.open")
                         : !isDesktop && app.webUrl
-                        ? "LAUNCH WEB"
-                        : "INSTALL"}
+                        ? t("app.launchWeb")
+                        : t("app.install")}
                     </button>
                   </div>
                 </div>
@@ -282,10 +281,10 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
       <section className="max-w-7xl mx-auto border-x border-t border-b border-[#1f1f24] mb-12">
         <div className="px-6 py-8 border-b border-[#1f1f24] bg-[#0d0d10]">
           <div className="font-mono-code text-[11px] tracking-[0.2em] text-[#8a8a96] uppercase mb-2">
-            03 / PRINCIPLES · SHARED BY EVERY GLORIA PROJECT
+            {t("showcase.principlesKicker")}
           </div>
           <h2 className="font-display font-bold text-2xl sm:text-3xl text-[#f4f4f6]">
-            Built the right way.{" "}
+            {t("showcase.principlesTitle")}{" "}
             <span className="font-serif-editorial italic font-normal text-[#00f0ff]">
               Temet Nosce.
             </span>
@@ -296,23 +295,23 @@ export const ShowcaseView: React.FC<ShowcaseViewProps> = ({
           {[
             {
               num: "01",
-              title: "Open source",
-              body: "Every repository is hosted on GitHub under @projectGloria. Inspect the code, fork it, or build it from source.",
+              title: t("showcase.principles.openSourceTitle"),
+              body: t("showcase.principles.openSourceBody"),
             },
             {
               num: "02",
-              title: "Local-first & zero telemetry",
-              body: "Your files, libraries, notes, and media stay on your machine. No forced cloud round-trips, subscriptions, or tracking.",
+              title: t("showcase.principles.localTitle"),
+              body: t("showcase.principles.localBody"),
             },
             {
               num: "03",
-              title: "Engineered for speed",
-              body: "From direct NTFS Master File Table indexing and wgpu shaders to Tauri 2 Rust binaries, performance comes first.",
+              title: t("showcase.principles.speedTitle"),
+              body: t("showcase.principles.speedBody"),
             },
             {
               num: "04",
-              title: "Web & Desktop unified",
-              body: "Browse and launch tools from GitHub Pages in any browser, or run the native GloriaLauncher on Windows.",
+              title: t("showcase.principles.unifiedTitle"),
+              body: t("showcase.principles.unifiedBody"),
             },
           ].map((p) => (
             <div

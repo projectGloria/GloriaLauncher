@@ -60,7 +60,7 @@ export const FooterBar: React.FC<FooterBarProps> = ({
         <button
           type="button"
           onClick={() => openExternalUrl("https://projectgloria.github.io/GloriaLauncher/")}
-          title="GloriaLauncher Web (GitHub Pages)"
+          title={t("footer.webTooltip")}
           className="hover:text-white transition-colors cursor-pointer"
         >
           <Globe size={12} />
@@ -69,7 +69,7 @@ export const FooterBar: React.FC<FooterBarProps> = ({
         <button
           type="button"
           onClick={() => openExternalUrl("https://github.com/projectGloria")}
-          title="@projectGloria on GitHub"
+          title={t("footer.githubTooltip")}
           className="hover:text-white transition-colors cursor-pointer"
         >
           <GitBranch size={12} />
@@ -82,7 +82,7 @@ export const FooterBar: React.FC<FooterBarProps> = ({
               "https://marketplace.visualstudio.com/items?itemName=Nihilnia.gloria-theme"
             )
           }
-          title="Gloria Theme on VS Code Marketplace"
+          title={t("footer.themeTooltip")}
           className="hover:text-white transition-colors cursor-pointer"
         >
           <Sparkles size={12} />
@@ -91,7 +91,7 @@ export const FooterBar: React.FC<FooterBarProps> = ({
         <button
           type="button"
           onClick={() => openExternalUrl("https://github.com/Nihilnia")}
-          title="Built by Nihil"
+          title={t("footer.builtBy")}
           className="hover:text-white transition-colors cursor-pointer"
         >
           <Terminal size={12} />

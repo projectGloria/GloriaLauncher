@@ -8,6 +8,8 @@ import type {
 import { AppBadgeIcon } from "./AppBadgeIcon";
 import { formatReadableDate } from "../services/githubService";
 import { isTauriDesktop, openExternalUrl } from "../services/platformService";
+import { useTranslation } from "react-i18next";
+import { activeLocale } from "../i18n";
 
 interface AppGridViewProps {
   installedApps: GloriaAppEntry[];
@@ -16,6 +18,8 @@ interface AppGridViewProps {
   activeAppId: string | null;
   downloadingMap: Record<string, DownloadProgressPayload>;
   isSyncing?: boolean;
+  /** True when the catalog itself is empty (not just filtered out). */
+  isCatalogEmpty?: boolean;
   onSelectApp: (app: GloriaAppEntry) => void;
   onPrimaryAction: (app: GloriaAppEntry, isInstalled: boolean) => void;
   onOpenDetails: (app: GloriaAppEntry) => void;
@@ -28,10 +32,12 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
   activeAppId,
   downloadingMap,
   isSyncing,
+  isCatalogEmpty,
   onSelectApp,
   onPrimaryAction,
   onOpenDetails,
 }) => {
+  const { t } = useTranslation();
   const isDesktop = isTauriDesktop();
 
   const renderCard = (app: GloriaAppEntry, isInstalledSection: boolean) => {
@@ -42,13 +48,13 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
       installedRecord?.version || app.releaseTag || app.version;
 
     // Determine primary CTA label
-    let primaryLabel = "INSTALL";
+    let primaryLabel = t("app.install");
     if (progress) {
       primaryLabel = `${Math.round(progress.percent)}%`;
     } else if (isInstalledSection) {
-      primaryLabel = "OPEN";
+      primaryLabel = t("app.open");
     } else if (!isDesktop) {
-      primaryLabel = app.webUrl ? "LAUNCH" : "INSTALL";
+      primaryLabel = app.webUrl ? t("app.launch") : t("app.install");
     }
 
     return (
@@ -94,7 +100,7 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
               }}
               className="flex items-center gap-1 font-mono-code text-[10px] tracking-[0.14em] text-[#8a8a96] hover:text-white uppercase transition-colors cursor-pointer"
             >
-              <span>GITHUB</span>
+              <span>{t("app.github")}</span>
               <ArrowUpRight size={11} />
             </button>
           </div>
@@ -137,20 +143,18 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
           {!isInstalledSection && (
             <div className="mb-2.5 flex items-center gap-1.5 flex-wrap">
               <span className="inline-block px-2 py-0.5 bg-[#111520] border border-[#222b40] font-mono-code text-[9px] font-semibold tracking-[0.14em] text-[#8ab4f8] uppercase">
-                {isDesktop
-                  ? "AVAILABLE TO INSTALL"
-                  : app.webUrl
-                  ? "AVAILABLE ON WEB"
-                  : "AVAILABLE TO INSTALL"}
+                {!isDesktop && app.webUrl
+                  ? t("app.status.availableOnWeb")
+                  : t("app.status.availableToInstall")}
               </span>
               <span className="inline-block px-1.5 py-0.5 bg-[#151519] border border-[#25252c] font-mono-code text-[9px] tracking-[0.1em] text-[#7c7c88] uppercase">
                 {app.category === "VS Code & Editor"
-                  ? "VSCODE"
+                  ? t("app.tag.vscode")
                   : app.category === "Browser Extensions"
-                  ? "EXTENSION"
+                  ? t("app.tag.extension")
                   : app.category === "Android & Mobile"
-                  ? "ANDROID"
-                  : app.language || "NATIVE"}
+                  ? t("app.tag.android")
+                  : app.language || t("app.tag.native")}
               </span>
             </div>
           )}
@@ -161,7 +165,7 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
               {app.tagline}
             </p>
             <p className="text-[11px] text-[#6b6b76]">
-              Last updated: {formatReadableDate(app.updatedAt)}
+              {t("app.lastUpdated", { date: formatReadableDate(app.updatedAt, activeLocale()) })}
             </p>
           </div>
         </div>
@@ -200,7 +204,7 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
               e.stopPropagation();
               onOpenDetails(app);
             }}
-            title="App Details, README & Releases"
+            title={t("grid.detailsTooltip")}
             className="w-8 h-8 shrink-0 bg-[#121216] hover:bg-[#1e1e24] border border-[#2e2e38] hover:border-[#4b4b5a] text-[#a1a1aa] hover:text-white flex items-center justify-center transition-colors cursor-pointer"
           >
             <MoreHorizontal size={14} />
@@ -227,11 +231,11 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
           <div className="px-4 py-2.5 bg-[#0b0b0c] border-b border-[#1f1f24] flex items-center justify-between">
             <span className="font-mono-code text-[10px] font-semibold tracking-[0.18em] text-[#7c7c88] uppercase">
               {isDesktop
-                ? `NOT INSTALLED (${availableApps.length})`
-                : `ALL SUITE APPS (${availableApps.length})`}
+                ? t("grid.notInstalled", { count: availableApps.length })
+                : t("grid.allSuiteApps", { count: availableApps.length })}
             </span>
             <span className="font-mono-code text-[10px] tracking-[0.14em] text-[#52525b] uppercase">
-              CLICK ANY CARD TO INSPECT README &amp; RELEASES
+              {t("grid.inspectHint")}
             </span>
           </div>
 
@@ -247,12 +251,12 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
             <>
               <Loader2 size={18} className="animate-spin text-[#00f0ff]" />
               <p className="font-mono-code text-xs tracking-[0.16em] text-[#7c7c88] uppercase">
-                FETCHING RELEASES FROM @PROJECTGLORIA...
+                {t("app.fetching")}
               </p>
             </>
           ) : (
             <p className="font-mono-code text-xs tracking-[0.16em] text-[#7c7c88] uppercase">
-              NO GLORIA APPS MATCH YOUR FILTER CRITERIA.
+              {isCatalogEmpty ? t("app.catalogUnavailable") : t("app.noMatch")}
             </p>
           )}
         </div>

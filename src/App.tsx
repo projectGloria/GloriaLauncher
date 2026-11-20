@@ -33,6 +33,7 @@ import { ShowcaseView } from "./components/ShowcaseView";
 import { AppDetailDrawer } from "./components/AppDetailDrawer";
 import { FooterBar } from "./components/FooterBar";
 import { SettingsModal } from "./components/SettingsModal";
+import { useTranslation } from "react-i18next";
 
 const GH_TOKEN_STORAGE_KEY = "gloria_launcher_gh_token";
 
@@ -69,6 +70,7 @@ export const App: React.FC = () => {
   });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  const { t } = useTranslation();
   const isDesktop = isTauriDesktop();
 
   const showToast = useCallback((msg: string) => {
@@ -158,12 +160,10 @@ export const App: React.FC = () => {
         ...prev,
         [app.id]: record,
       }));
-      showToast(`Downloaded & started installer for ${app.displayName} v${version}`);
+      showToast(t("toast.installStarted", { name: app.displayName, version }));
     } catch (err) {
       showToast(
-        `Install failed for ${app.displayName}: ${
-          err instanceof Error ? err.message : String(err)
-        }`
+        t("toast.installFailed", { name: app.displayName, error: err instanceof Error ? err.message : String(err) })
       );
     } finally {
       setDownloadingMap((prev) => {
@@ -184,12 +184,10 @@ export const App: React.FC = () => {
       if (isInstalled) {
         try {
           await launchDesktopApp(app.id);
-          showToast(`Launched ${app.displayName}`);
+          showToast(t("toast.launched", { name: app.displayName }));
         } catch (err) {
           showToast(
-            `Could not launch ${app.displayName}: ${
-              err instanceof Error ? err.message : String(err)
-            }`
+            t("toast.launchFailed", { name: app.displayName, error: err instanceof Error ? err.message : String(err) })
           );
           setDrawerApp(app);
         }
@@ -241,7 +239,7 @@ export const App: React.FC = () => {
     setInstalledMap(updatedMap);
     saveWebPinnedApps(updatedMap);
     setDrawerApp(app);
-    showToast(`${app.displayName} added to your active suite`);
+    showToast(t("toast.addedToSuite", { name: app.displayName }));
   };
 
   const handleUninstallOrUnpin = async (app: GloriaAppEntry) => {
@@ -254,11 +252,9 @@ export const App: React.FC = () => {
           delete next[app.id];
           return next;
         });
-        showToast(`Uninstalled ${app.displayName}`);
+        showToast(t("toast.uninstalled", { name: app.displayName }));
       } catch (err) {
-        showToast(
-          `Uninstall error: ${err instanceof Error ? err.message : String(err)}`
-        );
+        showToast(t("toast.uninstallError", { error: err instanceof Error ? err.message : String(err) }));
       }
       return;
     }
@@ -268,7 +264,7 @@ export const App: React.FC = () => {
       const next = { ...prev };
       if (next[app.id]) {
         delete next[app.id];
-        showToast(`Removed ${app.displayName} from pinned suite`);
+        showToast(t("toast.unpinned", { name: app.displayName }));
       } else {
         next[app.id] = {
           appId: app.id,
@@ -278,7 +274,7 @@ export const App: React.FC = () => {
           installedAt: new Date().toISOString(),
           source: "github-release",
         };
-        showToast(`Pinned ${app.displayName} to top suite`);
+        showToast(t("toast.pinned", { name: app.displayName }));
       }
       saveWebPinnedApps(next);
       return next;
@@ -305,8 +301,8 @@ export const App: React.FC = () => {
     setInstalledMap(freshMap);
     showToast(
       isDesktop
-        ? "Rescanned local workspace executables"
-        : "Reset default pinned apps"
+        ? t("toast.rescanned")
+        : t("toast.resetPinned")
     );
   };
 
@@ -407,6 +403,7 @@ export const App: React.FC = () => {
               activeAppId={selectedAppId}
               downloadingMap={downloadingMap}
               isSyncing={isSyncing}
+              isCatalogEmpty={apps.length === 0}
               onSelectApp={(app) => {
                 setSelectedAppId(app.id);
                 setDrawerApp(app);
@@ -425,6 +422,7 @@ export const App: React.FC = () => {
               activeAppId={selectedAppId}
               downloadingMap={downloadingMap}
               isSyncing={isSyncing}
+              isCatalogEmpty={apps.length === 0}
               sortBy={sortBy}
               onChangeSortBy={setSortBy}
               onSelectApp={(app) => {
@@ -479,7 +477,13 @@ export const App: React.FC = () => {
             ...prev,
             [record.appId]: record,
           }));
-          showToast(`Linked local executable for ${record.appId}`);
+          showToast(
+            t("toast.exeLinked", {
+              name:
+                apps.find((a) => a.id === record.appId)?.displayName ??
+                record.appId,
+            })
+          );
         }}
       />
 

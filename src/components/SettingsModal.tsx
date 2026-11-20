@@ -2,7 +2,13 @@ import React, { useState } from "react";
 import { X, KeyRound, RotateCcw, Check, Globe } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { isTauriDesktop } from "../services/platformService";
-import { SUPPORTED_LANGUAGES, LANGUAGE_STORAGE_KEY } from "../i18n";
+import {
+  SUPPORTED_LANGUAGES,
+  detectSystemLanguage,
+  getLanguagePreference,
+  setLanguagePreference,
+  type LanguagePreference,
+} from "../i18n";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -19,25 +25,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onResetPinned,
   onClose,
 }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const [tokenInput, setTokenInput] = useState(githubToken);
   const [saved, setSaved] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<string>(() => {
-    return localStorage.getItem(LANGUAGE_STORAGE_KEY) || "auto";
-  });
+  const [selectedLanguage, setSelectedLanguage] =
+    useState<LanguagePreference>(getLanguagePreference);
   const isDesktop = isTauriDesktop();
 
   if (!isOpen) return null;
 
-  const handleLanguageChange = (lng: string) => {
+  const handleLanguageChange = (lng: LanguagePreference) => {
     setSelectedLanguage(lng);
-    if (lng === "auto") {
-      localStorage.removeItem(LANGUAGE_STORAGE_KEY);
-      const systemLng = navigator.language.split("-")[0];
-      i18n.changeLanguage(systemLng === "fr" ? "fr" : "en");
-    } else {
-      i18n.changeLanguage(lng);
-    }
+    setLanguagePreference(lng);
   };
 
   const handleSave = (e: React.FormEvent) => {
@@ -57,6 +56,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <button
             type="button"
             onClick={onClose}
+            aria-label={t("settings.close")}
             className="w-7 h-7 flex items-center justify-center bg-[#15151b] hover:bg-[#23232c] border border-[#2a2a35] text-[#a1a1aa] hover:text-white cursor-pointer"
           >
             <X size={14} />
@@ -72,11 +72,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </label>
             <select
               value={selectedLanguage}
-              onChange={(e) => handleLanguageChange(e.target.value)}
+              onChange={(e) => handleLanguageChange(e.target.value as LanguagePreference)}
               className="w-full h-9 bg-[#141419] border border-[#2b2b36] px-3 text-xs text-[#f2f1ee] font-sans focus:outline-none focus:border-[#00f0ff] cursor-pointer"
             >
               <option value="auto">
-                {t("settings.languageAuto")} ({i18n.resolvedLanguage === "fr" ? "Français" : "English"})
+                {t("settings.languageAuto", {
+                  language:
+                    SUPPORTED_LANGUAGES.find((l) => l.code === detectSystemLanguage())
+                      ?.label ?? "English",
+                })}
               </option>
               {SUPPORTED_LANGUAGES.map((lang) => (
                 <option key={lang.code} value={lang.code}>
