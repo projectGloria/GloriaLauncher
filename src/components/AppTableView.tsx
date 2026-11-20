@@ -1,5 +1,5 @@
 import React from "react";
-import { MoreHorizontal, Loader2, ArrowUp, ArrowDown } from "lucide-react";
+import { MoreHorizontal, Loader2, ArrowUp, ArrowDown, ArrowUpCircle } from "lucide-react";
 import type {
   GloriaAppEntry,
   InstalledAppRecord,
@@ -11,6 +11,7 @@ import { isTauriDesktop } from "../services/platformService";
 import type { SortOption } from "./Toolbar";
 import { useTranslation } from "react-i18next";
 import { activeLocale } from "../i18n";
+import { getAvailableUpdate } from "../services/updateService";
 
 interface AppTableViewProps {
   installedApps: GloriaAppEntry[];
@@ -25,6 +26,8 @@ interface AppTableViewProps {
   onChangeSortBy: (sort: SortOption) => void;
   onSelectApp: (app: GloriaAppEntry) => void;
   onPrimaryAction: (app: GloriaAppEntry, isInstalled: boolean) => void;
+  /** Installs the latest release over an older installed copy. */
+  onUpdate: (app: GloriaAppEntry) => void;
   onOpenDetails: (app: GloriaAppEntry) => void;
 }
 
@@ -40,6 +43,7 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
   onChangeSortBy,
   onSelectApp,
   onPrimaryAction,
+  onUpdate,
   onOpenDetails,
 }) => {
   const { t } = useTranslation();
@@ -105,8 +109,10 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
             app.version
           ).replace(/^v/i, "");
 
+          const updateVersion = isDesktop ? getAvailableUpdate(app, installedRecord) : null;
+
           let primaryLabel = t("app.install");
-          if (progress) {
+          if (progress && !updateVersion) {
             primaryLabel = `${Math.round(progress.percent)}%`;
           } else if (isInstalled) {
             primaryLabel = t("app.open");
@@ -154,7 +160,11 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
 
               {/* Col 2: Status Badge */}
               <div className="col-span-2 pr-2">
-                {isInstalled ? (
+                {isInstalled && updateVersion ? (
+                  <span className="inline-block px-2 py-0.5 bg-[#1d1a0e] border border-[#4a3f17] font-mono-code text-[9.5px] font-semibold tracking-[0.14em] text-[#f5c542] uppercase">
+                {t("app.status.updateAvailable", { version: updateVersion })}
+              </span>
+                ) : isInstalled ? (
                   <span className="inline-block px-2 py-0.5 bg-[#121215] border border-[#2a2a32] font-mono-code text-[9.5px] font-semibold tracking-[0.14em] text-[#b4b4c0] uppercase">
                     {t("app.status.installed")}
                   </span>
@@ -195,11 +205,27 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
                       e.stopPropagation();
                       onPrimaryAction(app, true);
                     }}
-                    className="w-28 h-8 bg-[#121216] hover:bg-[#1e1e24] border border-[#2e2e38] hover:border-[#4b4b5a] text-[#f4f4f6] font-mono-code text-[10px] font-semibold tracking-[0.16em] uppercase transition-colors cursor-pointer flex items-center justify-center"
+                    className={`${updateVersion ? "w-20" : "w-28"} h-8 bg-[#121216] hover:bg-[#1e1e24] border border-[#2e2e38] hover:border-[#4b4b5a] text-[#f4f4f6] font-mono-code text-[10px] font-semibold tracking-[0.16em] uppercase transition-colors cursor-pointer flex items-center justify-center`}
                   >
                     {primaryLabel}
                   </button>
-                ) : (
+                ) : null}
+                {isInstalled && updateVersion && (
+                  <button
+                    type="button"
+                    disabled={Boolean(progress)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUpdate(app);
+                    }}
+                    title={t("app.updateTooltip", { current: installedRecord?.version, latest: updateVersion })}
+                    className="w-20 h-8 bg-[#f2f1ee] hover:bg-white text-[#0b0b0c] font-mono-code text-[10px] font-bold tracking-[0.16em] uppercase transition-colors cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-60"
+                  >
+                    {progress ? <Loader2 size={12} className="animate-spin" /> : <ArrowUpCircle size={12} />}
+                    <span>{progress ? `${Math.round(progress.percent)}%` : t("app.update")}</span>
+                  </button>
+                )}
+                {!isInstalled && (
                   <button
                     type="button"
                     disabled={Boolean(progress)}

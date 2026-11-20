@@ -65,11 +65,14 @@
     "status": {
       "installed": "Instalada",
       "available": "Disponible",
-      "availableToInstall": "Disponible para instalar"
+      "availableToInstall": "Disponible para instalar",
+      "updateAvailable": "Actualización · v{{version}}"
     },
     "fetching": "Obteniendo versiones de @projectGloria…",
     "noMatch": "Ninguna app de Gloria coincide con tus filtros.",
-    "catalogUnavailable": "No se pudo cargar el catálogo. Revisa tu conexión y actualiza."
+    "catalogUnavailable": "No se pudo cargar el catálogo. Revisa tu conexión y actualiza.",
+    "update": "Actualizar",
+    "updateTooltip": "Instalada v{{current}} → última v{{latest}}"
   },
   "grid": {
     "notInstalled": "No instaladas ({{count}})",
@@ -113,7 +116,8 @@
     "downloadZip": "Descargar ZIP",
     "readmePreview": "Vista previa de README.md",
     "loadingReadme": "Cargando el README desde GitHub…",
-    "noReadme": "No se encontró README.md en la rama principal."
+    "noReadme": "No se encontró README.md en la rama principal.",
+    "updateTo": "Actualizar a v{{version}}"
   },
   "showcase": {
     "kicker": "01 / Apps de Gloria",
@@ -158,7 +162,9 @@
     "githubTokenHelp": "Se guarda solo en tu dispositivo. Se usa al consultar api.github.com/users/projectGloria para obtener archivos de versiones y fechas de commits.",
     "rescanWorkspace": "Volver a analizar el espacio de trabajo",
     "save": "Guardar ajustes",
-    "saved": "Guardado"
+    "saved": "Guardado",
+    "runInTray": "Ejecutar en la bandeja",
+    "runInTrayDesc": "Al cerrar la ventana, GloriaLauncher sigue ejecutándose en la bandeja del sistema. Ciérralo desde el menú de su icono."
   },
   "footer": {
     "syncing": "Sincronizando con GitHub…",
@@ -193,5 +199,9 @@
     "later": "Recordar más tarde",
     "starting": "Iniciando…",
     "failed": "Error al actualizar: {{error}}"
+  },
+  "tray": {
+    "show": "Abrir GloriaLauncher",
+    "quit": "Salir"
   }
 }

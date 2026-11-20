@@ -13,6 +13,7 @@ import {
   syncCatalogWithGitHub,
 } from "./services/githubService";
 import {
+  configureTray,
   getInstalledAppsMap,
   installDesktopAppRelease,
   isTauriDesktop,
@@ -39,6 +40,7 @@ import { localizeApp } from "./i18n";
 import { useIconPalettes } from "./services/iconColorService";
 
 const GH_TOKEN_STORAGE_KEY = "gloria_launcher_gh_token";
+const RUN_IN_TRAY_STORAGE_KEY = "gloria_launcher_run_in_tray";
 const SPLASH_MIN_MS = 900;
 const SPLASH_MAX_MS = 15000;
 
@@ -76,6 +78,13 @@ export const App: React.FC = () => {
     }
   });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [runInTray, setRunInTray] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(RUN_IN_TRAY_STORAGE_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
 
   const { t, i18n } = useTranslation();
   const language = i18n.resolvedLanguage;
@@ -153,6 +162,37 @@ export const App: React.FC = () => {
     return () => window.clearTimeout(t);
   }, [scanPhase]);
 
+  // Apply the tray setting on launch, and again when it or the language changes
+  // so the tray menu stays translated.
+  useEffect(() => {
+    if (!isDesktop) return;
+    configureTray(runInTray, { show: t("tray.show"), quit: t("tray.quit") });
+  }, [isDesktop, runInTray, t, language]);
+
+  const handleRunInTrayChange = (enabled: boolean) => {
+    setRunInTray(enabled);
+    try {
+      localStorage.setItem(RUN_IN_TRAY_STORAGE_KEY, enabled ? "1" : "0");
+    } catch {
+      // Ignore
+    }
+  };
+
+  // Installers (new installs and updates) finish outside the launcher, so
+  // re-check what's installed whenever the window comes back into focus.
+  useEffect(() => {
+    if (!isDesktop || catalogApps.length === 0) return;
+    let last = 0;
+    const onFocus = () => {
+      const now = Date.now();
+      if (now - last < 5000) return;
+      last = now;
+      getInstalledAppsMap(catalogApps).then(setInstalledMap);
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [isDesktop, catalogApps]);
+
   // Listen to Tauri download progress events when running in Desktop runtime
   useEffect(() => {
     if (!isDesktop) return;
@@ -226,6 +266,34 @@ export const App: React.FC = () => {
     }
   };
 
+  /** Downloads the latest release installer and runs it (install or update). */
+  const installLatestRelease = async (app: GloriaAppEntry) => {
+    // Use already-synced release assets if present, otherwise fetch latest release
+    let assets = app.releaseAssets;
+    let releaseVersion = app.releaseTag || app.version;
+
+    if (!assets || assets.length === 0) {
+      const rel = await fetchAppReleaseInfo(app.id, githubToken);
+      assets = rel?.assets;
+      releaseVersion = rel?.version || releaseVersion;
+    }
+
+    const preferredAsset = pickPreferredReleaseAsset(assets || []);
+
+    if (preferredAsset) {
+      await handleInstallSpecificAsset(app, preferredAsset, releaseVersion);
+    } else {
+      // Open the detail drawer so user can inspect README, locate local .exe, or open repo
+      setDrawerApp(app);
+    }
+  };
+
+  const handleUpdate = async (app: GloriaAppEntry) => {
+    if (!isDesktop) return;
+    setSelectedAppId(app.id);
+    await installLatestRelease(app);
+  };
+
   const handlePrimaryAction = async (
     app: GloriaAppEntry,
     isInstalled: boolean
@@ -246,24 +314,7 @@ export const App: React.FC = () => {
         return;
       }
 
-      // Use already-synced release assets if present, otherwise fetch latest release
-      let assets = app.releaseAssets;
-      let releaseVersion = app.releaseTag || app.version;
-
-      if (!assets || assets.length === 0) {
-        const rel = await fetchAppReleaseInfo(app.id, githubToken);
-        assets = rel?.assets;
-        releaseVersion = rel?.version || releaseVersion;
-      }
-
-      const preferredAsset = pickPreferredReleaseAsset(assets || []);
-
-      if (preferredAsset) {
-        await handleInstallSpecificAsset(app, preferredAsset, releaseVersion);
-      } else {
-        // Open the detail drawer so user can inspect README, locate local .exe, or open repo
-        setDrawerApp(app);
-      }
+      await installLatestRelease(app);
       return;
     }
 
@@ -415,6 +466,7 @@ export const App: React.FC = () => {
                 setDrawerApp(app);
               }}
               onPrimaryAction={handlePrimaryAction}
+              onUpdate={handleUpdate}
               onOpenDetails={(app) => {
                 setSelectedAppId(app.id);
                 setDrawerApp(app);
@@ -436,6 +488,7 @@ export const App: React.FC = () => {
                 setDrawerApp(app);
               }}
               onPrimaryAction={handlePrimaryAction}
+              onUpdate={handleUpdate}
               onOpenDetails={(app) => {
                 setSelectedAppId(app.id);
                 setDrawerApp(app);
@@ -476,6 +529,7 @@ export const App: React.FC = () => {
           setSelectedAppId(null);
         }}
         onPrimaryAction={handlePrimaryAction}
+        onUpdate={handleUpdate}
         onInstallSpecificAsset={handleInstallSpecificAsset}
         onUninstall={handleUninstall}
         onCustomExeBound={(record) => {
@@ -499,6 +553,8 @@ export const App: React.FC = () => {
         githubToken={githubToken}
         onSaveToken={handleSaveToken}
         onRescan={handleRescan}
+        runInTray={runInTray}
+        onRunInTrayChange={handleRunInTrayChange}
         onClose={() => setSettingsOpen(false)}
       />
 

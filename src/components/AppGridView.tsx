@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowUpRight, MoreHorizontal, Loader2 } from "lucide-react";
+import { ArrowUpCircle, ArrowUpRight, MoreHorizontal, Loader2 } from "lucide-react";
 import type {
   GloriaAppEntry,
   InstalledAppRecord,
@@ -10,6 +10,7 @@ import { formatReadableDate } from "../services/githubService";
 import { isTauriDesktop, openExternalUrl } from "../services/platformService";
 import { useTranslation } from "react-i18next";
 import { activeLocale } from "../i18n";
+import { getAvailableUpdate } from "../services/updateService";
 
 interface AppGridViewProps {
   installedApps: GloriaAppEntry[];
@@ -22,6 +23,8 @@ interface AppGridViewProps {
   isCatalogEmpty?: boolean;
   onSelectApp: (app: GloriaAppEntry) => void;
   onPrimaryAction: (app: GloriaAppEntry, isInstalled: boolean) => void;
+  /** Installs the latest release over an older installed copy. */
+  onUpdate: (app: GloriaAppEntry) => void;
   onOpenDetails: (app: GloriaAppEntry) => void;
 }
 
@@ -35,6 +38,7 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
   isCatalogEmpty,
   onSelectApp,
   onPrimaryAction,
+  onUpdate,
   onOpenDetails,
 }) => {
   const { t } = useTranslation();
@@ -47,9 +51,11 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
     const displayVersion =
       installedRecord?.version || app.releaseTag || app.version;
 
+    const updateVersion = isDesktop ? getAvailableUpdate(app, installedRecord) : null;
+
     // Determine primary CTA label
     let primaryLabel = t("app.install");
-    if (progress) {
+    if (progress && !updateVersion) {
       primaryLabel = `${Math.round(progress.percent)}%`;
     } else if (isInstalledSection) {
       primaryLabel = t("app.open");
@@ -140,7 +146,14 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
             </div>
           </div>
 
-          {/* Row 3: Status Pill (for Not Installed or special category) */}
+          {/* Row 3: Status Pill (for Not Installed, or an installed app with an update) */}
+          {isInstalledSection && updateVersion && (
+            <div className="mb-2.5 flex items-center gap-1.5 flex-wrap">
+              <span className="inline-block px-2 py-0.5 bg-[#1d1a0e] border border-[#4a3f17] font-mono-code text-[9px] font-semibold tracking-[0.14em] text-[#f5c542] uppercase">
+                {t("app.status.updateAvailable", { version: updateVersion })}
+              </span>
+            </div>
+          )}
           {!isInstalledSection && (
             <div className="mb-2.5 flex items-center gap-1.5 flex-wrap">
               <span className="inline-block px-2 py-0.5 bg-[#111520] border border-[#222b40] font-mono-code text-[9px] font-semibold tracking-[0.14em] text-[#8ab4f8] uppercase">
@@ -192,7 +205,23 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
             >
               <span>{primaryLabel}</span>
             </button>
-          ) : (
+          ) : null}
+          {isInstalledSection && updateVersion && (
+            <button
+              type="button"
+              disabled={Boolean(progress)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onUpdate(app);
+              }}
+              title={t("app.updateTooltip", { current: installedRecord?.version, latest: updateVersion })}
+              className="flex-1 h-8 bg-[#f2f1ee] hover:bg-white text-[#0b0b0c] font-mono-code text-[10.5px] font-bold tracking-[0.16em] uppercase transition-colors cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-60"
+            >
+              {progress ? <Loader2 size={12} className="animate-spin" /> : <ArrowUpCircle size={12} />}
+              <span>{progress ? `${Math.round(progress.percent)}%` : t("app.update")}</span>
+            </button>
+          )}
+          {!isInstalledSection && (
             <button
               type="button"
               disabled={Boolean(progress)}

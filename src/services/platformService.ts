@@ -189,6 +189,24 @@ export async function openAppInstallFolder(appId: string): Promise<void> {
   await invoke("open_install_folder", { appId });
 }
 
+/** Desktop only: shows or removes the tray icon; when shown, closing the window hides it to the tray. */
+export async function configureTray(
+  enabled: boolean,
+  labels: { show: string; quit: string }
+): Promise<void> {
+  if (!isTauriDesktop()) return;
+  try {
+    const { invoke } = await import("@tauri-apps/api/core");
+    await invoke("configure_tray", {
+      enabled,
+      showLabel: labels.show,
+      quitLabel: labels.quit,
+    });
+  } catch (err) {
+    console.warn("Failed to configure the tray icon:", err);
+  }
+}
+
 export async function minimizeWindow(): Promise<void> {
   if (!isTauriDesktop()) return;
   const { getCurrentWindow } = await import("@tauri-apps/api/window");

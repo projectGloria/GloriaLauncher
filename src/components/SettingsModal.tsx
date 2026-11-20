@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X, KeyRound, RotateCcw, Check, Globe } from "lucide-react";
+import { X, KeyRound, RotateCcw, Check, Globe, PanelBottomClose } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { isTauriDesktop } from "../services/platformService";
 import {
@@ -15,6 +15,8 @@ interface SettingsModalProps {
   githubToken: string;
   onSaveToken: (token: string) => void;
   onRescan: () => void;
+  runInTray: boolean;
+  onRunInTrayChange: (enabled: boolean) => void;
   onClose: () => void;
 }
 
@@ -23,6 +25,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   githubToken,
   onSaveToken,
   onRescan,
+  runInTray,
+  onRunInTrayChange,
   onClose,
 }) => {
   const { t } = useTranslation();
@@ -92,6 +96,29 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               {t("settings.languageDesc")}
             </p>
           </div>
+
+          {/* Run in tray (desktop only) */}
+          {isDesktop && (
+            <div>
+              <label className="flex items-start gap-2.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={runInTray}
+                  onChange={(e) => onRunInTrayChange(e.target.checked)}
+                  className="mt-0.5 w-3.5 h-3.5 accent-[#00f0ff] cursor-pointer"
+                />
+                <span>
+                  <span className="flex items-center gap-1.5 font-mono-code text-[10.5px] font-semibold tracking-[0.14em] text-[#d4d4dc] uppercase">
+                    <PanelBottomClose size={12} className="text-[#00f0ff]" />
+                    <span>{t("settings.runInTray")}</span>
+                  </span>
+                  <span className="block mt-1.5 text-[11px] text-[#7c7c88] leading-relaxed">
+                    {t("settings.runInTrayDesc")}
+                  </span>
+                </span>
+              </label>
+            </div>
+          )}
 
           {/* GitHub Token */}
           <div>

@@ -65,11 +65,14 @@
     "status": {
       "installed": "Installed",
       "available": "Available",
-      "availableToInstall": "Available to install"
+      "availableToInstall": "Available to install",
+      "updateAvailable": "Update · v{{version}}"
     },
     "fetching": "Fetching releases from @projectGloria…",
     "noMatch": "No Gloria apps match your filter criteria.",
-    "catalogUnavailable": "Couldn't load the app catalog. Check your connection and refresh."
+    "catalogUnavailable": "Couldn't load the app catalog. Check your connection and refresh.",
+    "update": "Update",
+    "updateTooltip": "Installed v{{current}} → latest v{{latest}}"
   },
   "grid": {
     "notInstalled": "Not installed ({{count}})",
@@ -113,7 +116,8 @@
     "downloadZip": "Download ZIP",
     "readmePreview": "README.md preview",
     "loadingReadme": "Loading repository README from GitHub…",
-    "noReadme": "No README.md found on the default branch."
+    "noReadme": "No README.md found on the default branch.",
+    "updateTo": "Update to v{{version}}"
   },
   "showcase": {
     "kicker": "01 / Gloria Apps",
@@ -158,7 +162,9 @@
     "githubTokenHelp": "Stored locally on your device only. Used when querying api.github.com/users/projectGloria for live release assets and commit timestamps.",
     "rescanWorkspace": "Rescan Local Workspace",
     "save": "Save Settings",
-    "saved": "Saved"
+    "saved": "Saved",
+    "runInTray": "Run in tray",
+    "runInTrayDesc": "Closing the window keeps GloriaLauncher running in the system tray. Quit it from the tray icon's menu."
   },
   "footer": {
     "syncing": "Syncing with GitHub…",
@@ -192,5 +198,9 @@
     "later": "Remind me later",
     "starting": "Starting…",
     "failed": "Update failed: {{error}}"
+  },
+  "tray": {
+    "show": "Open GloriaLauncher",
+    "quit": "Quit"
   }
 }

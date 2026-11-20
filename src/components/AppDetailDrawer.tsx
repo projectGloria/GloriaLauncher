@@ -10,6 +10,7 @@ import {
   Play,
   Globe,
   HardDrive,
+  ArrowUpCircle,
 } from "lucide-react";
 import type {
   GloriaAppEntry,
@@ -28,6 +29,7 @@ import {
 } from "../services/githubService";
 import { useTranslation } from "react-i18next";
 import { activeLocale } from "../i18n";
+import { getAvailableUpdate } from "../services/updateService";
 import {
   isTauriDesktop,
   openExternalUrl,
@@ -42,6 +44,8 @@ interface AppDetailDrawerProps {
   githubToken?: string;
   onClose: () => void;
   onPrimaryAction: (app: GloriaAppEntry, isInstalled: boolean) => void;
+  /** Installs the latest release over an older installed copy. */
+  onUpdate: (app: GloriaAppEntry) => void;
   onInstallSpecificAsset: (
     app: GloriaAppEntry,
     asset: ReleaseAssetInfo,
@@ -58,6 +62,7 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
   githubToken,
   onClose,
   onPrimaryAction,
+  onUpdate,
   onInstallSpecificAsset,
   onUninstall,
   onCustomExeBound,
@@ -114,6 +119,8 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
   }, [app, githubToken]);
 
   if (!app) return null;
+
+  const updateVersion = isDesktop ? getAvailableUpdate(app, installedRecord) : null;
 
   const cleanReadmeExcerpt = (raw: string) => {
     if (!raw) return "";
@@ -220,6 +227,18 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
                 </>
               )}
             </button>
+
+            {updateVersion && !downloadProgress && (
+              <button
+                type="button"
+                onClick={() => onUpdate(app)}
+                title={t("app.updateTooltip", { current: installedRecord?.version, latest: updateVersion })}
+                className="h-9 px-4 bg-[#1d1a0e] hover:bg-[#2a2512] border border-[#4a3f17] text-[#f5c542] font-mono-code text-[11px] font-bold tracking-[0.16em] uppercase flex items-center gap-2 transition-colors cursor-pointer"
+              >
+                <ArrowUpCircle size={13} />
+                <span>{t("drawer.updateTo", { version: updateVersion })}</span>
+              </button>
+            )}
 
             {app.webUrl && (
               <button

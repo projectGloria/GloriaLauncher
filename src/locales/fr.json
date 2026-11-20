@@ -65,11 +65,14 @@
     "status": {
       "installed": "Installée",
       "available": "Disponible",
-      "availableToInstall": "Disponible à l'installation"
+      "availableToInstall": "Disponible à l'installation",
+      "updateAvailable": "Mise à jour · v{{version}}"
     },
     "fetching": "Récupération des versions de @projectGloria…",
     "noMatch": "Aucune app Gloria ne correspond à vos filtres.",
-    "catalogUnavailable": "Impossible de charger le catalogue. Vérifiez votre connexion puis actualisez."
+    "catalogUnavailable": "Impossible de charger le catalogue. Vérifiez votre connexion puis actualisez.",
+    "update": "Mettre à jour",
+    "updateTooltip": "Installée v{{current}} → dernière v{{latest}}"
   },
   "grid": {
     "notInstalled": "Non installées ({{count}})",
@@ -113,7 +116,8 @@
     "downloadZip": "Télécharger le ZIP",
     "readmePreview": "Aperçu du README.md",
     "loadingReadme": "Chargement du README depuis GitHub…",
-    "noReadme": "Aucun README.md trouvé sur la branche par défaut."
+    "noReadme": "Aucun README.md trouvé sur la branche par défaut.",
+    "updateTo": "Mettre à jour vers v{{version}}"
   },
   "showcase": {
     "kicker": "01 / Apps Gloria",
@@ -158,7 +162,9 @@
     "githubTokenHelp": "Stocké uniquement sur votre appareil. Utilisé pour interroger api.github.com/users/projectGloria afin d'obtenir les fichiers de version et les dates de commit.",
     "rescanWorkspace": "Réanalyser l'espace de travail",
     "save": "Enregistrer",
-    "saved": "Enregistré"
+    "saved": "Enregistré",
+    "runInTray": "Exécuter dans la zone de notification",
+    "runInTrayDesc": "Fermer la fenêtre laisse GloriaLauncher actif dans la zone de notification. Quittez-le depuis le menu de son icône."
   },
   "footer": {
     "syncing": "Synchronisation avec GitHub…",
@@ -192,5 +198,9 @@
     "later": "Me le rappeler plus tard",
     "starting": "Démarrage…",
     "failed": "Échec de la mise à jour : {{error}}"
+  },
+  "tray": {
+    "show": "Ouvrir GloriaLauncher",
+    "quit": "Quitter"
   }
 }

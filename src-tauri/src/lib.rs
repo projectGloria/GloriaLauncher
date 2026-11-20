@@ -5,6 +5,9 @@ use std::fs;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::atomic::{AtomicBool, Ordering};
+use tauri::menu::{Menu, MenuItem};
+use tauri::tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent};
 use tauri::{AppHandle, Emitter, Manager};
 
 const GLORIA_ICO_BYTES: &[u8] = include_bytes!("../../Gloria.ico");
@@ -1033,6 +1036,11 @@ async fn install_app_release(
     };
 
     let mut reg = load_registry(&app);
+    // Updating an app that Windows lists as installed: keep pointing at the
+    // installed app, not the installer. The next scan picks up the new version.
+    if let Some(existing) = reg.get(&app_id).filter(|r| r.source == "system") {
+        return Ok(existing.clone());
+    }
     reg.insert(app_id, record.clone());
     save_registry(&app, &reg)?;
 
@@ -1210,11 +1218,88 @@ fn open_install_folder(app: AppHandle, app_id: String) -> Result<(), String> {
     Ok(())
 }
 
+const TRAY_ID: &str = "gloria-tray";
+
+/// "Run in tray": when on, closing the window hides it to the tray instead of quitting.
+#[derive(Default)]
+struct TrayState {
+    enabled: AtomicBool,
+}
+
+fn show_main_window(app: &AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.unminimize();
+        let _ = window.show();
+        let _ = window.set_focus();
+    }
+}
+
+/// Turns the tray icon on or off. The frontend calls it on startup and again when
+/// the setting or the UI language changes, so the menu labels stay localized.
+#[tauri::command]
+fn configure_tray(
+    app: AppHandle,
+    state: tauri::State<'_, TrayState>,
+    enabled: bool,
+    show_label: String,
+    quit_label: String,
+) -> Result<(), String> {
+    state.enabled.store(enabled, Ordering::SeqCst);
+    if let Some(old) = app.remove_tray_by_id(TRAY_ID) {
+        let _ = old.set_visible(false);
+    }
+    if !enabled {
+        return Ok(());
+    }
+
+    let show = MenuItem::with_id(&app, "tray-show", show_label, true, None::<&str>)
+        .map_err(|e| e.to_string())?;
+    let quit = MenuItem::with_id(&app, "tray-quit", quit_label, true, None::<&str>)
+        .map_err(|e| e.to_string())?;
+    let menu = Menu::with_items(&app, &[&show, &quit]).map_err(|e| e.to_string())?;
+
+    let mut builder = TrayIconBuilder::with_id(TRAY_ID)
+        .tooltip("GLORIA Launcher")
+        .menu(&menu)
+        .show_menu_on_left_click(false)
+        .on_menu_event(|app, event| match event.id().as_ref() {
+            "tray-show" => show_main_window(app),
+            "tray-quit" => app.exit(0),
+            _ => {}
+        })
+        .on_tray_icon_event(|tray, event| {
+            if let TrayIconEvent::Click {
+                button: MouseButton::Left,
+                button_state: MouseButtonState::Up,
+                ..
+            } = event
+            {
+                show_main_window(tray.app_handle());
+            }
+        });
+    if let Some(icon) = app.default_window_icon() {
+        builder = builder.icon(icon.clone());
+    }
+    builder.build(&app).map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
+        .manage(TrayState::default())
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                let to_tray = window.label() == "main"
+                    && window.app_handle().state::<TrayState>().enabled.load(Ordering::SeqCst);
+                if to_tray {
+                    api.prevent_close();
+                    let _ = window.hide();
+                }
+            }
+        })
         .invoke_handler(tauri::generate_handler![
             get_installed_apps,
             filter_repos_with_releases,
@@ -1225,7 +1310,8 @@ pub fn run() {
             uninstall_app,
             open_install_folder,
             check_launcher_update,
-            install_launcher_update
+            install_launcher_update,
+            configure_tray
         ])
         .run(tauri::generate_context!())
         .expect("error while running GloriaLauncher");

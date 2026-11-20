@@ -65,11 +65,14 @@
     "status": {
       "installed": "Kurulu",
       "available": "Mevcut",
-      "availableToInstall": "Kuruluma hazır"
+      "availableToInstall": "Kuruluma hazır",
+      "updateAvailable": "Güncelleme · v{{version}}"
     },
     "fetching": "@projectGloria sürümleri alınıyor…",
     "noMatch": "Filtrelerinize uyan Gloria uygulaması yok.",
-    "catalogUnavailable": "Uygulama kataloğu yüklenemedi. Bağlantınızı kontrol edip yenileyin."
+    "catalogUnavailable": "Uygulama kataloğu yüklenemedi. Bağlantınızı kontrol edip yenileyin.",
+    "update": "Güncelle",
+    "updateTooltip": "Yüklü v{{current}} → en son v{{latest}}"
   },
   "grid": {
     "notInstalled": "Kurulu değil ({{count}})",
@@ -113,7 +116,8 @@
     "downloadZip": "ZIP indir",
     "readmePreview": "README.md önizlemesi",
     "loadingReadme": "README GitHub'dan yükleniyor…",
-    "noReadme": "Varsayılan dalda README.md bulunamadı."
+    "noReadme": "Varsayılan dalda README.md bulunamadı.",
+    "updateTo": "v{{version}} sürümüne güncelle"
   },
   "showcase": {
     "kicker": "01 / Gloria uygulamaları",
@@ -158,7 +162,9 @@
     "githubTokenHelp": "Yalnızca cihazınızda saklanır. Sürüm dosyaları ve commit tarihleri için api.github.com/users/projectGloria sorgulanırken kullanılır.",
     "rescanWorkspace": "Çalışma alanını yeniden tara",
     "save": "Ayarları kaydet",
-    "saved": "Kaydedildi"
+    "saved": "Kaydedildi",
+    "runInTray": "Sistem tepsisinde çalıştır",
+    "runInTrayDesc": "Pencereyi kapatınca GloriaLauncher sistem tepsisinde çalışmaya devam eder. Tepsi simgesinin menüsünden çıkabilirsiniz."
   },
   "footer": {
     "syncing": "GitHub ile eşitleniyor…",
@@ -192,5 +198,9 @@
     "later": "Daha sonra hatırlat",
     "starting": "Başlatılıyor…",
     "failed": "Güncelleme başarısız: {{error}}"
+  },
+  "tray": {
+    "show": "GloriaLauncher'ı aç",
+    "quit": "Çık"
   }
 }
