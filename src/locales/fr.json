@@ -1,4 +1,9 @@
 {
+  "splash": {
+    "title": "ANALYSE",
+    "catalog": "Synchronisation du catalogue",
+    "installed": "Détection des apps installées"
+  },
   "titlebar": {
     "launcher": "Lanceur",
     "showcase": "Catalogue & Vitrine",

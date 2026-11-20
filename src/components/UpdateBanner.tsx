@@ -11,7 +11,8 @@ import {
   type LauncherUpdateInfo,
 } from "../services/platformService";
 
-const RECHECK_INTERVAL_MS = 6 * 60 * 60 * 1000; // every 6 hours while open
+const RECHECK_INTERVAL_MS = 30 * 60 * 1000; // every 30 minutes while open
+const FOCUS_RECHECK_MIN_MS = 5 * 60 * 1000; // at most every 5 minutes on focus
 const DISMISSED_KEY = "gloria_launcher_update_dismissed";
 
 function readDismissed(): string | null {
@@ -37,15 +38,25 @@ export const UpdateBanner: React.FC<UpdateBannerProps> = ({ onError }) => {
   useEffect(() => {
     if (!isTauriDesktop()) return;
     let cancelled = false;
-    const check = () =>
+    let lastCheck = 0;
+    const check = () => {
+      lastCheck = Date.now();
       checkLauncherUpdate().then((info) => {
         if (!cancelled) setUpdate(info);
       });
+    };
+    // Coming back to the window re-checks, so a release published while the
+    // launcher sat open shows up without waiting for the next interval.
+    const onFocus = () => {
+      if (Date.now() - lastCheck >= FOCUS_RECHECK_MIN_MS) check();
+    };
     check();
     const timer = window.setInterval(check, RECHECK_INTERVAL_MS);
+    window.addEventListener("focus", onFocus);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
+      window.removeEventListener("focus", onFocus);
     };
   }, []);
 

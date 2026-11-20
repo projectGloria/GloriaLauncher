@@ -54,3 +54,15 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #5a5a68;
 }
+
+/* Scanning splash ring */
+@keyframes gloria-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes gloria-spin-rev {
+  to {
+    transform: rotate(-360deg);
+  }
+}

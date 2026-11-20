@@ -1,4 +1,9 @@
 {
+  "splash": {
+    "title": "SCANNING",
+    "catalog": "Syncing app catalog",
+    "installed": "Detecting installed apps"
+  },
   "titlebar": {
     "launcher": "Launcher",
     "showcase": "Lineup & Showcase",

@@ -1,4 +1,9 @@
 {
+  "splash": {
+    "title": "TARANIYOR",
+    "catalog": "Uygulama kataloğu eşitleniyor",
+    "installed": "Yüklü uygulamalar algılanıyor"
+  },
   "titlebar": {
     "launcher": "Başlatıcı",
     "showcase": "Katalog ve vitrin",

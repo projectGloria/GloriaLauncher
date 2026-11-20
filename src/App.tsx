@@ -34,11 +34,14 @@ import { AppDetailDrawer } from "./components/AppDetailDrawer";
 import { FooterBar } from "./components/FooterBar";
 import { SettingsModal } from "./components/SettingsModal";
 import { UpdateBanner } from "./components/UpdateBanner";
+import { ScanningSplash, type ScanPhase } from "./components/ScanningSplash";
 import { useTranslation } from "react-i18next";
 import { localizeApp } from "./i18n";
 import { useIconPalettes } from "./services/iconColorService";
 
 const GH_TOKEN_STORAGE_KEY = "gloria_launcher_gh_token";
+const SPLASH_MIN_MS = 900;
+const SPLASH_MAX_MS = 15000;
 
 export const App: React.FC = () => {
   const [catalogApps, setApps] = useState<GloriaAppEntry[]>(() => {
@@ -63,6 +66,8 @@ export const App: React.FC = () => {
     return getCachedSyncedApps()?.checkedAt || new Date();
   });
   const [isSyncing, setIsSyncing] = useState<boolean>(true);
+  const [scanPhase, setScanPhase] = useState<ScanPhase>("catalog");
+  const [splashMounted, setSplashMounted] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
   const [githubToken, setGithubToken] = useState<string>(() => {
     try {
@@ -111,6 +116,7 @@ export const App: React.FC = () => {
       try {
         const { apps: syncedApps, checkedAt: syncedTime } =
           await syncCatalogWithGitHub({ force, githubToken });
+        setScanPhase((p) => (p === "catalog" ? "installed" : p));
         const instMap = await getInstalledAppsMap(syncedApps);
         setApps(syncedApps);
         setCheckedAt(syncedTime);
@@ -124,9 +130,29 @@ export const App: React.FC = () => {
 
   // The cached catalog is already on screen from the initial state; always
   // re-check on launch so newly published apps show up right away.
+  // The first scan runs behind the "Scanning" splash. It stays up for at least
+  // a moment so it doesn't flash, and never longer than SPLASH_MAX_MS.
   useEffect(() => {
-    loadData(true);
+    const started = Date.now();
+    let hideTimer: number | undefined;
+    const finish = () => {
+      const wait = Math.max(0, SPLASH_MIN_MS - (Date.now() - started));
+      hideTimer = window.setTimeout(() => setScanPhase("done"), wait);
+    };
+    const cap = window.setTimeout(() => setScanPhase("done"), SPLASH_MAX_MS);
+    loadData(true).finally(finish);
+    return () => {
+      window.clearTimeout(cap);
+      window.clearTimeout(hideTimer);
+    };
   }, [loadData]);
+
+  // Keep the splash mounted while it fades out.
+  useEffect(() => {
+    if (scanPhase !== "done") return;
+    const t = window.setTimeout(() => setSplashMounted(false), 320);
+    return () => window.clearTimeout(t);
+  }, [scanPhase]);
 
   // Web: the desktop launcher may have been opened (or an app installed) since
   // this page loaded, so re-check installed apps whenever the tab regains focus.
@@ -543,6 +569,10 @@ export const App: React.FC = () => {
             {toastMessage}
           </span>
         </div>
+      )}
+
+      {splashMounted && (
+        <ScanningSplash phase={scanPhase} leaving={scanPhase === "done"} />
       )}
     </div>
   );
