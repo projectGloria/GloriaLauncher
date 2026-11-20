@@ -54,12 +54,14 @@ export async function getInstalledAppsMap(
     }
   }
 
-  // In Web mode, we treat featured/pinned apps as the top "Pinned / Web Suite" row,
-  // and allow the user to pin/unpin apps locally via localStorage.
+  // In Web mode, apps detected by a running desktop launcher come first; on top
+  // of those, featured/pinned apps form the "Pinned / Web Suite" row, which the
+  // user can pin/unpin locally via localStorage.
+  const detected = await fetchBridgeInstalledApps(catalog);
   try {
     const raw = localStorage.getItem(WEB_PINNED_KEY);
     if (raw) {
-      return JSON.parse(raw) as Record<string, InstalledAppRecord>;
+      return { ...(JSON.parse(raw) as Record<string, InstalledAppRecord>), ...detected };
     }
   } catch {
     // Ignore
@@ -78,12 +80,64 @@ export async function getInstalledAppsMap(
       };
     }
   }
-  return defaultMap;
+  return { ...defaultMap, ...detected };
+}
+
+/** Port the desktop launcher's local web bridge listens on (127.0.0.1 only). */
+const BRIDGE_URL = "http://127.0.0.1:47615/installed";
+
+interface BridgeResponse {
+  launcherVersion: string;
+  apps: { appId: string; version: string; source: InstalledAppRecord["source"] }[];
+}
+
+/**
+ * Web only: asks a running desktop launcher which Gloria apps are installed on
+ * this PC. Returns an empty map when the launcher isn't running or the browser
+ * blocks the local request.
+ */
+async function fetchBridgeInstalledApps(
+  catalog: GloriaAppEntry[]
+): Promise<Record<string, InstalledAppRecord>> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 2500);
+  try {
+    const res = await fetch(BRIDGE_URL, {
+      signal: controller.signal,
+      cache: "no-store",
+    });
+    if (!res.ok) return {};
+    const data = (await res.json()) as BridgeResponse;
+    const byId = new Map(catalog.map((a) => [a.id, a]));
+    const map: Record<string, InstalledAppRecord> = {};
+    for (const rec of data.apps ?? []) {
+      const app = byId.get(rec.appId);
+      if (!app) continue;
+      map[rec.appId] = {
+        appId: rec.appId,
+        version: rec.version || app.version,
+        executablePath: app.webUrl || app.repoUrl,
+        installDir: "this PC",
+        installedAt: "Detected by GloriaLauncher",
+        source: rec.source,
+      };
+    }
+    return map;
+  } catch {
+    return {};
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export function saveWebPinnedApps(map: Record<string, InstalledAppRecord>): void {
+  // Only user pins are stored; apps detected via the desktop launcher are
+  // re-checked on every load so they never go stale.
+  const pinsOnly = Object.fromEntries(
+    Object.entries(map).filter(([, rec]) => rec.installDir === "web")
+  );
   try {
-    localStorage.setItem(WEB_PINNED_KEY, JSON.stringify(map));
+    localStorage.setItem(WEB_PINNED_KEY, JSON.stringify(pinsOnly));
   } catch {
     // Ignore
   }

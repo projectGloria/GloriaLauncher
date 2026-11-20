@@ -128,6 +128,17 @@ export const App: React.FC = () => {
     loadData(true);
   }, [loadData]);
 
+  // Web: the desktop launcher may have been opened (or an app installed) since
+  // this page loaded, so re-check installed apps whenever the tab regains focus.
+  useEffect(() => {
+    if (isDesktop || apps.length === 0) return;
+    const onFocus = () => {
+      getInstalledAppsMap(apps).then(setInstalledMap);
+    };
+    window.addEventListener("focus", onFocus);
+    return () => window.removeEventListener("focus", onFocus);
+  }, [isDesktop, apps]);
+
   // Listen to Tauri download progress events when running in Desktop runtime
   useEffect(() => {
     if (!isDesktop) return;

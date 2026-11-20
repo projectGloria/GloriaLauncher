@@ -42,7 +42,7 @@ export const Titlebar: React.FC<TitlebarProps> = ({
   return (
     <header
       data-tauri-drag-region
-      className="h-11 w-full bg-[#0b0b0c] border-b border-[#1f1f24] flex items-center justify-between px-4 select-none shrink-0 z-30"
+      className="h-14 w-full bg-[#0b0b0c] border-b border-[#1f1f24] flex items-center justify-between px-4 select-none shrink-0 z-30"
     >
       {/* Left Brand + Suite Navigation */}
       <div className="flex items-center gap-5" data-tauri-drag-region>
@@ -51,8 +51,20 @@ export const Titlebar: React.FC<TitlebarProps> = ({
           onClick={() => onChangeMode("launcher")}
           className="flex items-center gap-2.5 text-left group cursor-pointer focus:outline-none"
         >
-          <span className="font-display font-extrabold tracking-[0.14em] text-[15px] text-[#f4f4f6] group-hover:text-white transition-colors">
-            GLORIA
+          <img
+            src="./gloria-logo.png"
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+            className="w-7 h-7 shrink-0 pointer-events-none"
+          />
+          <span className="flex items-baseline gap-2 whitespace-nowrap">
+            <span className="font-display font-extrabold tracking-[0.14em] text-[15px] text-[#f4f4f6] group-hover:text-white transition-colors">
+              GLORIA LAUNCHER
+            </span>
+            <span className="font-mono-code text-[10px] tracking-[0.12em] text-[#71717a]">
+              v{__APP_VERSION__}
+            </span>
           </span>
         </button>
 
@@ -61,7 +73,7 @@ export const Titlebar: React.FC<TitlebarProps> = ({
           <button
             type="button"
             onClick={() => onChangeMode("launcher")}
-            className={`flex items-center gap-1.5 px-2.5 py-1 font-mono-code text-[10px] tracking-[0.14em] uppercase transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 whitespace-nowrap font-mono-code text-[10px] tracking-[0.14em] uppercase transition-colors cursor-pointer ${
               activeMode === "launcher"
                 ? "bg-[#24242b] text-white font-semibold"
                 : "text-[#7c7c88] hover:text-[#d4d4dc]"
@@ -76,7 +88,7 @@ export const Titlebar: React.FC<TitlebarProps> = ({
           <button
             type="button"
             onClick={() => onChangeMode("showcase")}
-            className={`flex items-center gap-1.5 px-2.5 py-1 font-mono-code text-[10px] tracking-[0.14em] uppercase transition-colors cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 whitespace-nowrap font-mono-code text-[10px] tracking-[0.14em] uppercase transition-colors cursor-pointer ${
               activeMode === "showcase"
                 ? "bg-[#24242b] text-white font-semibold"
                 : "text-[#7c7c88] hover:text-[#d4d4dc]"
@@ -98,7 +110,7 @@ export const Titlebar: React.FC<TitlebarProps> = ({
                 "https://github.com/projectGloria/GloriaLauncher/releases"
               )
             }
-            className="hidden md:flex items-center gap-1.5 mr-3 px-2.5 py-1 bg-[#f2f1ee] hover:bg-white text-[#0b0b0c] font-mono-code text-[10px] font-semibold tracking-[0.12em] uppercase transition-colors cursor-pointer"
+            className="hidden md:flex items-center gap-1.5 mr-3 px-2.5 py-1.5 whitespace-nowrap bg-[#f2f1ee] hover:bg-white text-[#0b0b0c] font-mono-code text-[10px] font-semibold tracking-[0.12em] uppercase transition-colors cursor-pointer"
             title={t("titlebar.downloadNativeTooltip")}
           >
             <Download size={11} strokeWidth={2.4} />
