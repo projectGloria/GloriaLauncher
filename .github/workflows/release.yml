@@ -127,7 +127,7 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
-          npx --yes gloria-setup@0.2.0 --app stage --manifest gloria.toml --version ${{ needs.version.outputs.version }} --out dist
+          npx --yes gloria-setup@0.2.2 --app stage --manifest gloria.toml --version ${{ needs.version.outputs.version }} --out dist
 
       - name: Dry-run verify installer
         shell: pwsh
