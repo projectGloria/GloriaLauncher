@@ -710,29 +710,48 @@ fn get_installed_apps(
     Ok(detect_installed_apps(&app, candidates))
 }
 
+fn is_installer_file(path: &Path) -> bool {
+    let ext = path
+        .extension()
+        .and_then(|e| e.to_str())
+        .map(|s| s.to_ascii_lowercase());
+    let name = path
+        .file_name()
+        .and_then(|n| n.to_str())
+        .map(|s| s.to_ascii_lowercase())
+        .unwrap_or_default();
+    matches!(ext.as_deref(), Some("msi" | "msix" | "msixbundle"))
+        || (ext.as_deref() == Some("exe")
+            && (name.contains("setup") || name.contains("install")))
+}
+
 fn detect_installed_apps(
     app: &AppHandle,
     candidates: Vec<LocalCandidateInput>,
 ) -> Vec<InstalledAppRecord> {
     let mut reg = load_registry(app);
 
-    // Prune entries whose executable no longer exists on disk
-    reg.retain(|_, rec| Path::new(&rec.executable_path).exists());
+    // Prune entries whose executable no longer exists on disk, and legacy
+    // "github-release" records that pointed at a downloaded installer rather
+    // than an installed executable.
+    reg.retain(|_, rec| {
+        let p = Path::new(&rec.executable_path);
+        p.exists() && !(rec.source == "github-release" && is_installer_file(p))
+    });
 
     // Detect apps installed with their own installers (listed in Windows'
-    // installed programs). This wins over a "github-release" record, which only
-    // points at the downloaded installer, not the installed app.
+    // installed programs). This wins over a "github-release" record, and
+    // removes stale "system" records when an app has been uninstalled.
     let system_apps = system_installed::scan();
     for item in &candidates {
-        let keep_existing = reg
-            .get(&item.app_id)
-            .map(|rec| rec.source != "github-release" && rec.source != "system")
-            .unwrap_or(false);
-        if keep_existing {
+        let existing_source = reg.get(&item.app_id).map(|rec| rec.source.as_str());
+        if matches!(existing_source, Some(s) if s != "github-release" && s != "system") {
             continue;
         }
         if let Some(found) = system_installed::find_match(&system_apps, item) {
             reg.insert(item.app_id.clone(), found);
+        } else if existing_source == Some("system") {
+            reg.remove(&item.app_id);
         }
     }
 
@@ -988,7 +1007,7 @@ async fn install_app_release(
     version: String,
     download_url: String,
     file_name: String,
-) -> Result<InstalledAppRecord, String> {
+) -> Result<Option<InstalledAppRecord>, String> {
     let downloads_dir = downloads_root_dir(&app)?;
     let safe_file_name = Path::new(&file_name)
         .file_name()
@@ -1025,6 +1044,20 @@ async fn install_app_release(
         (target_file.clone(), downloads_dir.clone())
     };
 
+    let mut reg = load_registry(&app);
+    // Updating an app that Windows lists as installed: keep pointing at the
+    // installed app, not the installer. The next scan picks up the new version.
+    if let Some(existing) = reg.get(&app_id).filter(|r| r.source == "system") {
+        return Ok(Some(existing.clone()));
+    }
+
+    // Installers finish asynchronously outside the launcher; don't record the
+    // installer itself as "installed" (otherwise cancelling it leaves a bogus
+    // entry). Live rescanning picks up the real app once installation completes.
+    if is_installer_file(&final_exe_path) {
+        return Ok(None);
+    }
+
     let record = InstalledAppRecord {
         app_id: app_id.clone(),
         version,
@@ -1035,16 +1068,10 @@ async fn install_app_release(
         uninstall_command: None,
     };
 
-    let mut reg = load_registry(&app);
-    // Updating an app that Windows lists as installed: keep pointing at the
-    // installed app, not the installer. The next scan picks up the new version.
-    if let Some(existing) = reg.get(&app_id).filter(|r| r.source == "system") {
-        return Ok(existing.clone());
-    }
     reg.insert(app_id, record.clone());
     save_registry(&app, &reg)?;
 
-    Ok(record)
+    Ok(Some(record))
 }
 
 fn extract_zip_and_find_installer(
@@ -1157,48 +1184,55 @@ fn launch_installed_app(app: AppHandle, app_id: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-fn uninstall_app(app: AppHandle, app_id: String) -> Result<(), String> {
+fn uninstall_app(app: AppHandle, app_id: String) -> Result<bool, String> {
     let mut reg = load_registry(&app);
-    if let Some(record) = reg.remove(&app_id) {
-        if record.source == "system" {
-            // Hand off to the app's own uninstaller; if the user cancels it, the
-            // next scan simply detects the app again.
-            let Some(cmd) = record.uninstall_command.as_deref() else {
-                return Err("No uninstaller is registered for this app.".to_string());
-            };
-            #[cfg(target_os = "windows")]
-            {
-                use std::os::windows::process::CommandExt;
-                const CREATE_NO_WINDOW: u32 = 0x0800_0000;
-                Command::new("cmd")
-                    .arg("/C")
-                    .raw_arg(cmd)
-                    .creation_flags(CREATE_NO_WINDOW)
-                    .spawn()
-                    .map_err(|e| format!("Failed to start uninstaller: {e}"))?;
-            }
-            #[cfg(not(target_os = "windows"))]
-            let _ = cmd;
-        } else if record.source == "github-release" {
-            let dir_path = Path::new(&record.install_dir);
-            let is_shared_downloads = dir_path
-                .file_name()
-                .and_then(|n| n.to_str())
-                .map(|s| s.eq_ignore_ascii_case("GloriaLauncherDownloads"))
-                .unwrap_or(false);
+    let Some(record) = reg.get(&app_id).cloned() else {
+        return Ok(true);
+    };
 
-            if is_shared_downloads {
-                let exe_path = Path::new(&record.executable_path);
-                if exe_path.is_file() {
-                    let _ = fs::remove_file(exe_path);
-                }
-            } else if dir_path.exists() {
-                let _ = fs::remove_dir_all(dir_path);
-            }
+    if record.source == "system" {
+        // Hand off to the app's own uninstaller. Keep the registry record until
+        // the uninstaller actually removes the app from Windows so cancelling
+        // doesn't hide an installed app; live rescanning clears it once done.
+        let Some(cmd) = record.uninstall_command.as_deref() else {
+            return Err("No uninstaller is registered for this app.".to_string());
+        };
+        #[cfg(target_os = "windows")]
+        {
+            use std::os::windows::process::CommandExt;
+            const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+            Command::new("cmd")
+                .arg("/C")
+                .raw_arg(cmd)
+                .creation_flags(CREATE_NO_WINDOW)
+                .spawn()
+                .map_err(|e| format!("Failed to start uninstaller: {e}"))?;
         }
-        save_registry(&app, &reg)?;
+        #[cfg(not(target_os = "windows"))]
+        let _ = cmd;
+        return Ok(false);
     }
-    Ok(())
+
+    reg.remove(&app_id);
+    if record.source == "github-release" {
+        let dir_path = Path::new(&record.install_dir);
+        let is_shared_downloads = dir_path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .map(|s| s.eq_ignore_ascii_case("GloriaLauncherDownloads"))
+            .unwrap_or(false);
+
+        if is_shared_downloads {
+            let exe_path = Path::new(&record.executable_path);
+            if exe_path.is_file() {
+                let _ = fs::remove_file(exe_path);
+            }
+        } else if dir_path.exists() {
+            let _ = fs::remove_dir_all(dir_path);
+        }
+    }
+    save_registry(&app, &reg)?;
+    Ok(true)
 }
 
 #[tauri::command]
@@ -1231,6 +1265,7 @@ fn show_main_window(app: &AppHandle) {
         let _ = window.unminimize();
         let _ = window.show();
         let _ = window.set_focus();
+        let _ = app.emit("launcher-shown", ());
     }
 }
 
@@ -1286,7 +1321,13 @@ fn configure_tray(
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder::default()
+    let builder = tauri::Builder::default();
+    #[cfg(desktop)]
+    let builder = builder.plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
+        show_main_window(app);
+    }));
+
+    builder
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .manage(TrayState::default())
@@ -1457,5 +1498,15 @@ mod tests {
         for never in ["Simulacrum", "Emissa", "React"] {
             assert!(!names.contains(&never), "{never} has no release but was returned");
         }
+    }
+
+    #[test]
+    fn identifies_installer_files() {
+        assert!(is_installer_file(Path::new(r"C:\Downloads\Draco_1.0.0_x64-setup.exe")));
+        assert!(is_installer_file(Path::new(r"C:\Downloads\KeystrokerInstaller.exe")));
+        assert!(is_installer_file(Path::new(r"C:\Downloads\App_1.0.0.msi")));
+        assert!(is_installer_file(Path::new(r"C:\Downloads\App.msixbundle")));
+        assert!(!is_installer_file(Path::new(r"C:\Apps\Draco\Draco.exe")));
+        assert!(!is_installer_file(Path::new(r"C:\Downloads\portable-tool.exe")));
     }
 }

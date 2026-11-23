@@ -115,9 +115,9 @@ export async function installDesktopAppRelease(params: {
   version: string;
   downloadUrl: string;
   fileName: string;
-}): Promise<InstalledAppRecord> {
+}): Promise<InstalledAppRecord | null> {
   const { invoke } = await import("@tauri-apps/api/core");
-  return await invoke<InstalledAppRecord>("install_app_release", params);
+  return await invoke<InstalledAppRecord | null>("install_app_release", params);
 }
 
 export async function bindCustomExecutable(
@@ -146,9 +146,13 @@ export async function launchDesktopApp(appId: string): Promise<void> {
   await invoke("launch_installed_app", { appId });
 }
 
-export async function uninstallDesktopApp(appId: string): Promise<void> {
+/**
+ * Returns `true` if the app was removed immediately (portable/custom), or
+ * `false` if an external Windows uninstaller was launched and will finish asynchronously.
+ */
+export async function uninstallDesktopApp(appId: string): Promise<boolean> {
   const { invoke } = await import("@tauri-apps/api/core");
-  await invoke("uninstall_app", { appId });
+  return await invoke<boolean>("uninstall_app", { appId });
 }
 
 /** Progress events for the launcher's own update carry this appId. */

@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowUpCircle, ArrowUpRight, MoreHorizontal, Loader2 } from "lucide-react";
+import { ArrowUpCircle, ArrowUpRight, MoreHorizontal, Loader2, Trash2 } from "lucide-react";
 import type {
   GloriaAppEntry,
   InstalledAppRecord,
@@ -25,6 +25,7 @@ interface AppGridViewProps {
   onPrimaryAction: (app: GloriaAppEntry, isInstalled: boolean) => void;
   /** Installs the latest release over an older installed copy. */
   onUpdate: (app: GloriaAppEntry) => void;
+  onUninstall: (app: GloriaAppEntry) => void;
   onOpenDetails: (app: GloriaAppEntry) => void;
 }
 
@@ -39,6 +40,7 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
   onSelectApp,
   onPrimaryAction,
   onUpdate,
+  onUninstall,
   onOpenDetails,
 }) => {
   const { t } = useTranslation();
@@ -88,10 +90,10 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
         )}
 
         <div>
-          {/* Row 1: Version Tag + GITHUB ↗ Link */}
-          <div className="flex items-center justify-between pb-3 mb-3.5 border-b border-[#1c1c21]">
+          {/* Row 1: Version Tag + Hover Uninstall (installed) + GITHUB ↗ Link */}
+          <div className="flex items-center justify-between gap-2 pb-3 mb-3.5 border-b border-[#1c1c21]">
             <span
-              className="font-mono-code text-[11px] font-semibold tracking-[0.12em] uppercase"
+              className="font-mono-code text-[11px] font-semibold tracking-[0.12em] uppercase shrink-0"
               style={{
                 color: vivid ? app.accentColor : "#8a8a96",
               }}
@@ -99,20 +101,37 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
               V{displayVersion.replace(/^v/i, "")}
             </span>
 
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                openExternalUrl(app.repoUrl);
-              }}
-              className="flex items-center gap-1 font-mono-code text-[10px] tracking-[0.14em] text-[#8a8a96] hover:text-white uppercase transition-colors cursor-pointer"
-            >
-              <span lang="en">{t("app.github")}</span>
-              <ArrowUpRight size={11} />
-            </button>
+            <div className="flex items-center gap-2 min-w-0">
+              {isDesktop && isInstalledSection && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onUninstall(app);
+                  }}
+                  title={t("drawer.uninstallTooltip")}
+                  className="opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto flex items-center gap-1 px-1.5 py-0.5 bg-[#1e1012] hover:bg-[#2f1519] border border-[#4a1d24] hover:border-[#7f2b36] font-mono-code text-[9.5px] font-semibold tracking-[0.12em] text-[#f87171] hover:text-[#fca5a5] uppercase transition-all duration-150 cursor-pointer shrink-0"
+                >
+                  <Trash2 size={10} />
+                  <span>{t("drawer.uninstall")}</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openExternalUrl(app.repoUrl);
+                }}
+                className="flex items-center gap-1 font-mono-code text-[10px] tracking-[0.14em] text-[#8a8a96] hover:text-white uppercase transition-colors cursor-pointer shrink-0"
+              >
+                <span lang="en">{t("app.github")}</span>
+                <ArrowUpRight size={11} />
+              </button>
+            </div>
           </div>
 
-          {/* Row 2: App Icon + Two-Tone Title + BY GLORIA Badge + Subtitle */}
+          {/* Row 2: App Icon + Two-Tone Title + Subtitle */}
           <div className="flex items-start gap-3 mb-3.5">
             <AppBadgeIcon
               repoId={app.id}
@@ -135,9 +154,6 @@ export const AppGridView: React.FC<AppGridViewProps> = ({
                     {app.titleAccent}
                   </span>
                 </h3>
-                <span className="px-1.5 py-[1px] bg-[#141824] border border-[#252d44] font-mono-code text-[8.5px] font-semibold tracking-[0.14em] text-[#93b4ff] uppercase shrink-0">
-                  {app.authorBadge}
-                </span>
               </div>
 
               <p className="text-[11.5px] text-[#9ca3af] mt-0.5 line-clamp-1">

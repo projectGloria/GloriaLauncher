@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+import React, { useEffect, useMemo, useState, useCallback, useRef } from "react";
 import type {
   AppCategory,
   DownloadProgressPayload,
@@ -43,6 +43,35 @@ const GH_TOKEN_STORAGE_KEY = "gloria_launcher_gh_token";
 const RUN_IN_TRAY_STORAGE_KEY = "gloria_launcher_run_in_tray";
 const SPLASH_MIN_MS = 900;
 const SPLASH_MAX_MS = 15000;
+const INSTALLED_POLL_MS = 5000;
+const FAST_POLL_INTERVAL_MS = 1500;
+const FAST_POLL_DURATION_MS = 60_000;
+const CATALOG_POLL_MS = 5 * 60 * 1000;
+const CATALOG_FOCUS_STALE_MS = 2 * 60 * 1000;
+
+function installedMapsEqual(
+  a: Record<string, InstalledAppRecord>,
+  b: Record<string, InstalledAppRecord>
+): boolean {
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+  if (keysA.length !== keysB.length) return false;
+  for (const k of keysA) {
+    const ra = a[k];
+    const rb = b[k];
+    if (
+      !ra ||
+      !rb ||
+      ra.version !== rb.version ||
+      ra.executablePath !== rb.executablePath ||
+      ra.source !== rb.source ||
+      ra.uninstallCommand !== rb.uninstallCommand
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
 
 export const App: React.FC = () => {
   const [catalogApps, setApps] = useState<GloriaAppEntry[]>(() => {
@@ -118,19 +147,73 @@ export const App: React.FC = () => {
     }, 3500);
   }, []);
 
+  const catalogAppsRef = useRef<GloriaAppEntry[]>(catalogApps);
+  catalogAppsRef.current = catalogApps;
+  const lastCatalogSyncRef = useRef<number>(0);
+  const lastInstalledScanRef = useRef<number>(0);
+  const fastPollTimerRef = useRef<number | undefined>(undefined);
+  const fastPollStopRef = useRef<number | undefined>(undefined);
+  const bgCatalogSyncingRef = useRef<boolean>(false);
+
+  const rescanInstalled = useCallback(async () => {
+    if (!isDesktop) return;
+    const currentApps = catalogAppsRef.current;
+    if (currentApps.length === 0) return;
+    lastInstalledScanRef.current = Date.now();
+    const freshMap = await getInstalledAppsMap(currentApps);
+    setInstalledMap((prev) =>
+      installedMapsEqual(prev, freshMap) ? prev : freshMap
+    );
+  }, [isDesktop]);
+
+  const startFastRescanBurst = useCallback(() => {
+    if (!isDesktop) return;
+    window.clearInterval(fastPollTimerRef.current);
+    window.clearTimeout(fastPollStopRef.current);
+    fastPollTimerRef.current = window.setInterval(() => {
+      void rescanInstalled();
+    }, FAST_POLL_INTERVAL_MS);
+    fastPollStopRef.current = window.setTimeout(() => {
+      window.clearInterval(fastPollTimerRef.current);
+      fastPollTimerRef.current = undefined;
+    }, FAST_POLL_DURATION_MS);
+  }, [isDesktop, rescanInstalled]);
+
+  useEffect(() => {
+    return () => {
+      window.clearInterval(fastPollTimerRef.current);
+      window.clearTimeout(fastPollStopRef.current);
+    };
+  }, []);
+
   const loadData = useCallback(
-    async (force = false) => {
-      setIsSyncing(true);
+    async (force = false, silent = false) => {
+      if (silent) {
+        if (bgCatalogSyncingRef.current) return;
+        bgCatalogSyncingRef.current = true;
+      } else {
+        setIsSyncing(true);
+      }
       try {
         const { apps: syncedApps, checkedAt: syncedTime } =
           await syncCatalogWithGitHub({ force, githubToken });
-        setScanPhase((p) => (p === "catalog" ? "installed" : p));
+        lastCatalogSyncRef.current = Date.now();
+        if (!silent) {
+          setScanPhase((p) => (p === "catalog" ? "installed" : p));
+        }
         const instMap = await getInstalledAppsMap(syncedApps);
+        lastInstalledScanRef.current = Date.now();
         setApps(syncedApps);
         setCheckedAt(syncedTime);
-        setInstalledMap(instMap);
+        setInstalledMap((prev) =>
+          installedMapsEqual(prev, instMap) ? prev : instMap
+        );
       } finally {
-        setIsSyncing(false);
+        if (silent) {
+          bgCatalogSyncingRef.current = false;
+        } else {
+          setIsSyncing(false);
+        }
       }
     },
     [githubToken]
@@ -178,20 +261,53 @@ export const App: React.FC = () => {
     }
   };
 
-  // Installers (new installs and updates) finish outside the launcher, so
-  // re-check what's installed whenever the window comes back into focus.
+  // Keep installed status, versions, and uninstallation status live:
+  // 1) Poll Windows installed apps every few seconds while visible.
+  // 2) Re-check immediately on window focus, visibility change, or tray restore.
+  // 3) Periodically refresh remote catalog versions in the background on desktop.
   useEffect(() => {
-    if (!isDesktop || catalogApps.length === 0) return;
-    let last = 0;
-    const onFocus = () => {
+    if (!isDesktop) return;
+
+    const handleWake = () => {
+      if (document.visibilityState === "hidden") return;
       const now = Date.now();
-      if (now - last < 5000) return;
-      last = now;
-      getInstalledAppsMap(catalogApps).then(setInstalledMap);
+      if (now - lastInstalledScanRef.current >= 500) {
+        void rescanInstalled();
+      }
+      if (now - lastCatalogSyncRef.current >= CATALOG_FOCUS_STALE_MS) {
+        void loadData(true, true);
+      }
     };
-    window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
-  }, [isDesktop, catalogApps]);
+
+    const installedTimer = window.setInterval(() => {
+      if (document.visibilityState === "visible") {
+        void rescanInstalled();
+      }
+    }, INSTALLED_POLL_MS);
+
+    const catalogTimer = window.setInterval(() => {
+      void loadData(true, true);
+    }, CATALOG_POLL_MS);
+
+    window.addEventListener("focus", handleWake);
+    document.addEventListener("visibilitychange", handleWake);
+
+    let unlistenShown: (() => void) | undefined;
+    import("@tauri-apps/api/event")
+      .then(({ listen }) => listen("launcher-shown", handleWake))
+      .then((unlisten) => {
+        unlistenShown = unlisten;
+      })
+      .catch(() => {});
+
+    return () => {
+      window.clearInterval(installedTimer);
+      window.clearInterval(catalogTimer);
+      window.removeEventListener("focus", handleWake);
+      document.removeEventListener("visibilitychange", handleWake);
+      unlistenShown?.();
+    };
+  }, [isDesktop, rescanInstalled, loadData]);
 
   // Listen to Tauri download progress events when running in Desktop runtime
   useEffect(() => {
@@ -248,10 +364,13 @@ export const App: React.FC = () => {
         downloadUrl: asset.browserDownloadUrl,
         fileName: asset.name,
       });
-      setInstalledMap((prev) => ({
-        ...prev,
-        [app.id]: record,
-      }));
+      if (record) {
+        setInstalledMap((prev) => ({
+          ...prev,
+          [app.id]: record,
+        }));
+      }
+      startFastRescanBurst();
       showToast(t("toast.installStarted", { name: app.displayName, version }));
     } catch (err) {
       showToast(
@@ -334,13 +453,18 @@ export const App: React.FC = () => {
   const handleUninstall = async (app: GloriaAppEntry) => {
     if (!isDesktop || !installedMap[app.id]) return;
     try {
-      await uninstallDesktopApp(app.id);
-      setInstalledMap((prev) => {
-        const next = { ...prev };
-        delete next[app.id];
-        return next;
-      });
-      showToast(t("toast.uninstalled", { name: app.displayName }));
+      const removedImmediately = await uninstallDesktopApp(app.id);
+      if (removedImmediately) {
+        setInstalledMap((prev) => {
+          const next = { ...prev };
+          delete next[app.id];
+          return next;
+        });
+        showToast(t("toast.uninstalled", { name: app.displayName }));
+      } else {
+        // System uninstaller runs asynchronously; fast-poll until it completes.
+        startFastRescanBurst();
+      }
     } catch (err) {
       showToast(t("toast.uninstallError", { error: err instanceof Error ? err.message : String(err) }));
     }
@@ -467,6 +591,7 @@ export const App: React.FC = () => {
               }}
               onPrimaryAction={handlePrimaryAction}
               onUpdate={handleUpdate}
+              onUninstall={handleUninstall}
               onOpenDetails={(app) => {
                 setSelectedAppId(app.id);
                 setDrawerApp(app);
@@ -489,6 +614,7 @@ export const App: React.FC = () => {
               }}
               onPrimaryAction={handlePrimaryAction}
               onUpdate={handleUpdate}
+              onUninstall={handleUninstall}
               onOpenDetails={(app) => {
                 setSelectedAppId(app.id);
                 setDrawerApp(app);

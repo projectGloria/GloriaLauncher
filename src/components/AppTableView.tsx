@@ -1,5 +1,5 @@
 import React from "react";
-import { MoreHorizontal, Loader2, ArrowUp, ArrowDown, ArrowUpCircle } from "lucide-react";
+import { MoreHorizontal, Loader2, ArrowUp, ArrowDown, ArrowUpCircle, Trash2 } from "lucide-react";
 import type {
   GloriaAppEntry,
   InstalledAppRecord,
@@ -28,6 +28,7 @@ interface AppTableViewProps {
   onPrimaryAction: (app: GloriaAppEntry, isInstalled: boolean) => void;
   /** Installs the latest release over an older installed copy. */
   onUpdate: (app: GloriaAppEntry) => void;
+  onUninstall: (app: GloriaAppEntry) => void;
   onOpenDetails: (app: GloriaAppEntry) => void;
 }
 
@@ -44,6 +45,7 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
   onSelectApp,
   onPrimaryAction,
   onUpdate,
+  onUninstall,
   onOpenDetails,
 }) => {
   const { t } = useTranslation();
@@ -61,7 +63,7 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
           <button
             type="button"
             onClick={() => onChangeSortBy("name-asc")}
-            className="col-span-5 flex items-center gap-1 text-left hover:text-white transition-colors cursor-pointer"
+            className="col-span-4 flex items-center gap-1 text-left hover:text-white transition-colors cursor-pointer"
           >
             <span>{t("table.app")}</span>
             {sortBy === "name-asc" && (
@@ -95,7 +97,7 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
 
           <div className="col-span-1">{t("table.author")}</div>
 
-          <div className="col-span-2 text-right">{t("table.action")}</div>
+          <div className="col-span-3 text-right">{t("table.action")}</div>
         </div>
 
         {/* Table Body Rows */}
@@ -133,7 +135,7 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
               }`}
             >
               {/* Col 1: App Icon + Two-Tone Title + Subtitle */}
-              <div className="col-span-5 flex items-center gap-3.5 pr-4 min-w-0">
+              <div className="col-span-4 flex items-center gap-3.5 pr-4 min-w-0">
                 <AppBadgeIcon
                   repoId={app.id}
                   iconKey={app.iconKey}
@@ -197,7 +199,21 @@ export const AppTableView: React.FC<AppTableViewProps> = ({
               </div>
 
               {/* Col 6: Action Buttons */}
-              <div className="col-span-2 flex items-center justify-end gap-1.5">
+              <div className="col-span-3 flex items-center justify-end gap-1.5">
+                {isDesktop && isInstalled && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onUninstall(app);
+                    }}
+                    title={t("drawer.uninstallTooltip")}
+                    className="opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto h-8 px-2.5 bg-[#1e1012] hover:bg-[#2f1519] border border-[#4a1d24] hover:border-[#7f2b36] text-[#f87171] hover:text-[#fca5a5] font-mono-code text-[10px] font-semibold tracking-[0.14em] uppercase transition-all duration-150 cursor-pointer flex items-center justify-center gap-1.5 shrink-0"
+                  >
+                    <Trash2 size={11} />
+                    <span>{t("drawer.uninstall")}</span>
+                  </button>
+                )}
                 {isInstalled ? (
                   <button
                     type="button"
