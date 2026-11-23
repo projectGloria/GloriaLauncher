@@ -17,3 +17,4 @@ Thumbs.db
 
 # Generated at build time by scripts/build-catalog.mjs
 public/catalog.json
+[Dd]esktop.ini
