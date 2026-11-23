@@ -1,6 +1,6 @@
 id = "GloriaLauncher"
 name = "GloriaLauncher"
-version = "1.1.1"
+version = "1.2.0"
 main_exe = "GloriaLauncher.exe"
 icon = "Gloria.ico"
 accent = "#00f0ff"
