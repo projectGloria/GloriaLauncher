@@ -8,7 +8,7 @@
     "launcher": "Launcher",
     "showcase": "Lineup & Showcase",
     "getDesktop": "Get Desktop App",
-    "downloadNativeTooltip": "Download native Windows GloriaLauncher",
+    "downloadNativeTooltip": "Download native Windows Gloria Launcher",
     "githubTooltip": "Open @projectGloria on GitHub",
     "language": "Language",
     "settingsTooltip": "Launcher Settings",
@@ -117,7 +117,25 @@
     "readmePreview": "README.md preview",
     "loadingReadme": "Loading repository README from GitHub…",
     "noReadme": "No README.md found on the default branch.",
-    "updateTo": "Update to v{{version}}"
+    "updateTo": "Update to v{{version}}",
+    "versionAlreadyInstalled": "This version already installed",
+    "age": {
+      "justNow": "just now",
+      "minutesAgo_one": "{{count}} minute ago",
+      "minutesAgo_other": "{{count}} minutes ago",
+      "hoursAgo_one": "{{count}} hour ago",
+      "hoursAgo_other": "{{count}} hours ago",
+      "hoursMinutesAgo": "{{hours}} hours {{minutes}} minutes ago",
+      "daysAgo_one": "{{count}} day ago",
+      "daysAgo_other": "{{count}} days ago",
+      "daysHoursAgo": "{{days}} days {{hours}} hours ago",
+      "monthsAgo_one": "{{count}} month ago",
+      "monthsAgo_other": "{{count}} months ago",
+      "monthsDaysAgo": "{{months}} months {{days}} days ago",
+      "yearsAgo_one": "{{count}} year ago",
+      "yearsAgo_other": "{{count}} years ago",
+      "yearsMonthsAgo": "{{years}} years {{months}} months ago"
+    }
   },
   "showcase": {
     "kicker": "01 / Gloria Apps",
@@ -133,7 +151,7 @@
     "copyLink": "Copy Link",
     "copiedLink": "Copied Link",
     "recommendedLabel": "Recommended:",
-    "recommendedBody": "GloriaLauncher runs as a native Windows desktop app that installs and launches every tool below, and can also be built for the web.",
+    "recommendedBody": "Gloria Launcher runs as a native Windows desktop app that installs and launches every tool below, and can also be built for the web.",
     "lineupKicker": "02 / The Lineup",
     "lineupTitle": "Pick a craft to explore",
     "switchToLauncher": "Switch to compact Grid / Table view →",
@@ -148,7 +166,7 @@
       "speedTitle": "Engineered for speed",
       "speedBody": "From direct NTFS Master File Table indexing and wgpu shaders to Tauri 2 Rust binaries, performance comes first.",
       "unifiedTitle": "Web & Desktop unified",
-      "unifiedBody": "Browse and launch tools from GitHub Pages in any browser, or run the native GloriaLauncher on Windows."
+      "unifiedBody": "Browse and launch tools from GitHub Pages in any browser, or run the native Gloria Launcher on Windows."
     }
   },
   "settings": {
@@ -164,7 +182,7 @@
     "save": "Save Settings",
     "saved": "Saved",
     "runInTray": "Run in tray",
-    "runInTrayDesc": "Closing the window keeps GloriaLauncher running in the system tray. Quit it from the tray icon's menu."
+    "runInTrayDesc": "Closing the window keeps Gloria Launcher running in the system tray. Quit it from the tray icon's menu."
   },
   "footer": {
     "syncing": "Syncing with GitHub…",
@@ -176,7 +194,7 @@
     "installed": "installed",
     "desktopRuntime": "Desktop Runtime",
     "webEdition": "Web Edition",
-    "webTooltip": "GloriaLauncher Web (GitHub Pages)",
+    "webTooltip": "Gloria Launcher Web (GitHub Pages)",
     "githubTooltip": "@projectGloria on GitHub",
     "themeTooltip": "Gloria Theme on VS Code Marketplace",
     "builtBy": "Built by Nihil"
@@ -192,7 +210,7 @@
     "exeLinked": "Linked local executable for {{name}}"
   },
   "update": {
-    "available": "GloriaLauncher v{{latest}} is available — you have v{{current}}.",
+    "available": "Gloria Launcher v{{latest}} is available — you have v{{current}}.",
     "install": "Update now",
     "whatsNew": "What's new",
     "later": "Remind me later",
@@ -200,7 +218,7 @@
     "failed": "Update failed: {{error}}"
   },
   "tray": {
-    "show": "Open GloriaLauncher",
+    "show": "Open Gloria Launcher",
     "quit": "Quit"
   }
 }

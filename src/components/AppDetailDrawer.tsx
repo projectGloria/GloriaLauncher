@@ -11,6 +11,7 @@ import {
   Globe,
   HardDrive,
   ArrowUpCircle,
+  Check,
 } from "lucide-react";
 import type {
   GloriaAppEntry,
@@ -19,17 +20,22 @@ import type {
   DownloadProgressPayload,
 } from "../types/app";
 import { AppBadgeIcon } from "./AppBadgeIcon";
+import { ReadmeViewer } from "./ReadmeViewer";
 import {
   fetchAppReleaseInfo,
   fetchRepoReadme,
   formatByteSize,
   formatReadableDate,
+  parseReleaseTimestamp,
   pickPreferredReleaseAsset,
+  scoreInstallerAsset,
   sortReleaseAssets,
+  type RelativeAgeParts,
+  type RepoReadmeResult,
 } from "../services/githubService";
 import { useTranslation } from "react-i18next";
 import { activeLocale } from "../i18n";
-import { getAvailableUpdate } from "../services/updateService";
+import { compareVersions, getAvailableUpdate } from "../services/updateService";
 import {
   isTauriDesktop,
   openExternalUrl,
@@ -67,7 +73,7 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
   onUninstall,
   onCustomExeBound,
 }) => {
-  const [readme, setReadme] = useState<string>("");
+  const [readme, setReadme] = useState<RepoReadmeResult | null>(null);
   const [loadingReadme, setLoadingReadme] = useState(false);
   const [releaseData, setReleaseData] = useState<{
     version?: string;
@@ -83,15 +89,24 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
 
   useEffect(() => {
     if (!app) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [app, onClose]);
+
+  useEffect(() => {
+    if (!app) return;
     let cancelled = false;
     setLoadingReadme(true);
     setLoadingReleases(true);
-    setReadme("");
+    setReadme(null);
     setReleaseData(null);
 
-    fetchRepoReadme(app.id).then((text) => {
+    fetchRepoReadme(app.id).then((res) => {
       if (!cancelled) {
-        setReadme(text);
+        setReadme(res);
         setLoadingReadme(false);
       }
     });
@@ -121,16 +136,57 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
   if (!app) return null;
 
   const updateVersion = isDesktop ? getAvailableUpdate(app, installedRecord) : null;
+  const releaseVersion = releaseData?.version || app.version;
+  const isThisVersionInstalled = Boolean(
+    isDesktop &&
+      installedRecord?.version &&
+      releaseVersion &&
+      compareVersions(releaseVersion, installedRecord.version) === 0
+  );
 
-  const cleanReadmeExcerpt = (raw: string) => {
-    if (!raw) return "";
-    return raw
-      .replace(/<[^>]+>/g, "")
-      .replace(/!\[[^\]]*\]\([^)]*\)/g, "")
-      .replace(/\n{3,}/g, "\n\n")
-      .trim()
-      .slice(0, 3200);
+  const formatAgeText = (age: RelativeAgeParts): string => {
+    switch (age.unit) {
+      case "justNow":
+        return t("drawer.age.justNow");
+      case "minutes":
+        return t("drawer.age.minutesAgo", { count: age.primary });
+      case "hours":
+        return age.secondary > 0
+          ? t("drawer.age.hoursMinutesAgo", {
+              hours: age.primary,
+              minutes: age.secondary,
+            })
+          : t("drawer.age.hoursAgo", { count: age.primary });
+      case "days":
+        return age.secondary > 0
+          ? t("drawer.age.daysHoursAgo", {
+              days: age.primary,
+              hours: age.secondary,
+            })
+          : t("drawer.age.daysAgo", { count: age.primary });
+      case "months":
+        return age.secondary > 0
+          ? t("drawer.age.monthsDaysAgo", {
+              months: age.primary,
+              days: age.secondary,
+            })
+          : t("drawer.age.monthsAgo", { count: age.primary });
+      case "years":
+        return age.secondary > 0
+          ? t("drawer.age.yearsMonthsAgo", {
+              years: age.primary,
+              months: age.secondary,
+            })
+          : t("drawer.age.yearsAgo", { count: age.primary });
+    }
   };
+
+  const parsedReleaseTime = parseReleaseTimestamp(
+    releaseData?.publishedAt || app.releasePublishedAt || app.updatedAt
+  );
+  const releaseVersionLine = parsedReleaseTime
+    ? `v${releaseVersion} - ${parsedReleaseTime.dateText} - ${parsedReleaseTime.timeText} (${formatAgeText(parsedReleaseTime.age)})`
+    : `v${releaseVersion}`;
 
   const handleBindLocalExe = async () => {
     const rec = await bindCustomExecutable(
@@ -147,14 +203,19 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
     : undefined;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-[2px]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-[3px] p-4 sm:p-6">
       <div
         className="fixed inset-0"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      <aside className="relative z-10 w-full max-w-2xl h-full bg-[#0d0d10] border-l border-[#24242c] flex flex-col overflow-hidden shadow-2xl">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={app.displayName}
+        className="relative z-10 w-full max-w-5xl max-h-[90vh] bg-[#0d0d10] border border-[#262630] flex flex-col overflow-hidden shadow-2xl"
+      >
         {/* Top Accent Strip */}
         <div
           className="h-1 w-full shrink-0"
@@ -382,6 +443,9 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
               <div className="space-y-2">
                 {sortReleaseAssets(releaseData.assets).map((asset) => {
                   const isRecommended = asset.name === recommendedAssetName;
+                  const isInstallableAsset = scoreInstallerAsset(asset.name) !== null;
+                  const showAlreadyInstalled =
+                    isDesktop && isInstallableAsset && isThisVersionInstalled;
                   return (
                   <div
                     key={asset.name}
@@ -398,27 +462,47 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
                           {t("drawer.recommended")}
                         </div>
                       )}
-                      <div className="font-mono-code text-[10px] text-[#7c7c88] mt-0.5">
-                        {asset.size > 0 ? `${formatByteSize(asset.size)} · ` : ""}v{releaseData.version}
+                      <div className="font-mono-code text-[10.5px] text-[#8a8a98] mt-1">
+                        {releaseVersionLine}
+                        {asset.size > 0 ? ` · ${formatByteSize(asset.size)}` : ""}
                       </div>
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        isDesktop
-                          ? onInstallSpecificAsset(
-                              app,
-                              asset,
-                              releaseData.version || app.version
-                            )
-                          : openExternalUrl(asset.browserDownloadUrl)
-                      }
-                      className="px-3 py-1.5 bg-[#f2f1ee] hover:bg-white text-[#0b0b0c] font-mono-code text-[10px] font-bold tracking-[0.14em] uppercase flex items-center gap-1.5 shrink-0 cursor-pointer"
-                    >
-                      <Download size={11} />
-                      <span>{isDesktop ? t("app.install") : t("app.download")}</span>
-                    </button>
+                    {showAlreadyInstalled ? (
+                      <button
+                        type="button"
+                        disabled
+                        className="px-3 py-1.5 bg-[#121d17] border border-[#234332] text-[#6ee7b7] font-mono-code text-[10px] font-semibold tracking-[0.12em] uppercase flex items-center gap-1.5 shrink-0 cursor-not-allowed opacity-90"
+                      >
+                        <Check size={11} />
+                        <span>{t("drawer.versionAlreadyInstalled")}</span>
+                      </button>
+                    ) : isDesktop && isInstallableAsset ? (
+                      <button
+                        type="button"
+                        disabled={Boolean(downloadProgress)}
+                        onClick={() =>
+                          onInstallSpecificAsset(
+                            app,
+                            asset,
+                            releaseData.version || app.version
+                          )
+                        }
+                        className="px-3 py-1.5 bg-[#f2f1ee] hover:bg-white text-[#0b0b0c] font-mono-code text-[10px] font-bold tracking-[0.14em] uppercase flex items-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-60"
+                      >
+                        <Download size={11} />
+                        <span>{t("app.install")}</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => openExternalUrl(asset.browserDownloadUrl)}
+                        className="px-3 py-1.5 bg-[#181820] hover:bg-[#24242f] border border-[#2e2e3a] text-[#e4e4e7] font-mono-code text-[10px] font-semibold tracking-[0.14em] uppercase flex items-center gap-1.5 shrink-0 cursor-pointer"
+                      >
+                        <Download size={11} />
+                        <span>{t("app.download")}</span>
+                      </button>
+                    )}
                   </div>
                   );
                 })}
@@ -456,9 +540,11 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
                 <span>{t("drawer.loadingReadme")}</span>
               </div>
             ) : readme ? (
-              <pre className="p-4 bg-[#09090b] border border-[#1f1f25] font-mono-code text-[11.5px] text-[#b4b4c0] whitespace-pre-wrap leading-relaxed overflow-x-auto max-h-96">
-                {cleanReadmeExcerpt(readme)}
-              </pre>
+              <ReadmeViewer
+                markdown={readme.content}
+                repoId={app.id}
+                branch={readme.branch}
+              />
             ) : (
               <div className="p-4 bg-[#111115] border border-[#1f1f25] text-xs text-[#7c7c88]">
                 {t("drawer.noReadme")}
@@ -466,7 +552,7 @@ export const AppDetailDrawer: React.FC<AppDetailDrawerProps> = ({
             )}
           </div>
         </div>
-      </aside>
+      </div>
     </div>
   );
 };

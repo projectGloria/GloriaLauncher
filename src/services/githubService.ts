@@ -681,7 +681,14 @@ export function sortReleaseAssets(assets: ReleaseAssetInfo[]): ReleaseAssetInfo[
   );
 }
 
-export async function fetchRepoReadme(repoId: string): Promise<string> {
+export interface RepoReadmeResult {
+  content: string;
+  branch: string;
+}
+
+export async function fetchRepoReadme(
+  repoId: string
+): Promise<RepoReadmeResult | null> {
   const branches = ["main", "master"];
   for (const branch of branches) {
     try {
@@ -689,13 +696,79 @@ export async function fetchRepoReadme(repoId: string): Promise<string> {
         `https://raw.githubusercontent.com/${GITHUB_OWNER}/${repoId}/${branch}/README.md`
       );
       if (res.ok) {
-        return await res.text();
+        return { content: await res.text(), branch };
       }
     } catch {
       // Try next branch
     }
   }
-  return "";
+  return null;
+}
+
+export interface RelativeAgeParts {
+  unit: "justNow" | "minutes" | "hours" | "days" | "months" | "years";
+  primary: number;
+  secondary: number;
+}
+
+/**
+ * Formats an ISO timestamp as `MM/DD/YY - HH:MM` (local time) and computes
+ * human-friendly relative age parts (e.g. hours + minutes, days + hours).
+ */
+export function parseReleaseTimestamp(
+  isoString?: string,
+  nowMs: number = Date.now()
+): { dateText: string; timeText: string; age: RelativeAgeParts } | null {
+  if (!isoString) return null;
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  const yy = String(date.getFullYear()).slice(-2);
+  const hh = String(date.getHours()).padStart(2, "0");
+  const min = String(date.getMinutes()).padStart(2, "0");
+
+  const diffMin = Math.max(0, Math.floor((nowMs - date.getTime()) / 60_000));
+  let age: RelativeAgeParts;
+  if (diffMin < 1) {
+    age = { unit: "justNow", primary: 0, secondary: 0 };
+  } else if (diffMin < 60) {
+    age = { unit: "minutes", primary: diffMin, secondary: 0 };
+  } else if (diffMin < 24 * 60) {
+    age = {
+      unit: "hours",
+      primary: Math.floor(diffMin / 60),
+      secondary: diffMin % 60,
+    };
+  } else if (diffMin < 30 * 24 * 60) {
+    const totalHours = Math.floor(diffMin / 60);
+    age = {
+      unit: "days",
+      primary: Math.floor(totalHours / 24),
+      secondary: totalHours % 24,
+    };
+  } else if (diffMin < 365 * 24 * 60) {
+    const totalDays = Math.floor(diffMin / (24 * 60));
+    age = {
+      unit: "months",
+      primary: Math.floor(totalDays / 30),
+      secondary: totalDays % 30,
+    };
+  } else {
+    const totalMonths = Math.floor(diffMin / (30 * 24 * 60));
+    age = {
+      unit: "years",
+      primary: Math.floor(totalMonths / 12),
+      secondary: totalMonths % 12,
+    };
+  }
+
+  return {
+    dateText: `${mm}/${dd}/${yy}`,
+    timeText: `${hh}:${min}`,
+    age,
+  };
 }
 
 export function formatReadableDate(isoString: string, locale = "en-US"): string {

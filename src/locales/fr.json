@@ -8,7 +8,7 @@
     "launcher": "Lanceur",
     "showcase": "Catalogue & Vitrine",
     "getDesktop": "App de bureau",
-    "downloadNativeTooltip": "Télécharger GloriaLauncher pour Windows",
+    "downloadNativeTooltip": "Télécharger Gloria Launcher pour Windows",
     "githubTooltip": "Ouvrir @projectGloria sur GitHub",
     "language": "Langue",
     "settingsTooltip": "Paramètres du lanceur",
@@ -117,7 +117,25 @@
     "readmePreview": "Aperçu du README.md",
     "loadingReadme": "Chargement du README depuis GitHub…",
     "noReadme": "Aucun README.md trouvé sur la branche par défaut.",
-    "updateTo": "Mettre à jour vers v{{version}}"
+    "updateTo": "Mettre à jour vers v{{version}}",
+    "versionAlreadyInstalled": "Cette version est déjà installée",
+    "age": {
+      "justNow": "à l'instant",
+      "minutesAgo_one": "il y a {{count}} minute",
+      "minutesAgo_other": "il y a {{count}} minutes",
+      "hoursAgo_one": "il y a {{count}} heure",
+      "hoursAgo_other": "il y a {{count}} heures",
+      "hoursMinutesAgo": "il y a {{hours}} h {{minutes}} min",
+      "daysAgo_one": "il y a {{count}} jour",
+      "daysAgo_other": "il y a {{count}} jours",
+      "daysHoursAgo": "il y a {{days}} j {{hours}} h",
+      "monthsAgo_one": "il y a {{count}} mois",
+      "monthsAgo_other": "il y a {{count}} mois",
+      "monthsDaysAgo": "il y a {{months}} mois {{days}} j",
+      "yearsAgo_one": "il y a {{count}} an",
+      "yearsAgo_other": "il y a {{count}} ans",
+      "yearsMonthsAgo": "il y a {{years}} an(s) {{months}} mois"
+    }
   },
   "showcase": {
     "kicker": "01 / Apps Gloria",
@@ -133,7 +151,7 @@
     "copyLink": "Copier le lien",
     "copiedLink": "Lien copié",
     "recommendedLabel": "Recommandé :",
-    "recommendedBody": "GloriaLauncher est une application de bureau Windows native qui installe et lance chacun des outils ci-dessous, et peut aussi être compilée pour le web.",
+    "recommendedBody": "Gloria Launcher est une application de bureau Windows native qui installe et lance chacun des outils ci-dessous, et peut aussi être compilée pour le web.",
     "lineupKicker": "02 / La gamme",
     "lineupTitle": "Choisissez un outil à explorer",
     "switchToLauncher": "Passer à la vue grille / tableau →",
@@ -148,7 +166,7 @@
       "speedTitle": "Conçu pour la vitesse",
       "speedBody": "De l'indexation directe de la MFT NTFS aux shaders wgpu en passant par les binaires Rust Tauri 2, la performance passe en premier.",
       "unifiedTitle": "Web et bureau réunis",
-      "unifiedBody": "Parcourez et lancez les outils depuis GitHub Pages dans n'importe quel navigateur, ou utilisez GloriaLauncher en natif sous Windows."
+      "unifiedBody": "Parcourez et lancez les outils depuis GitHub Pages dans n'importe quel navigateur, ou utilisez Gloria Launcher en natif sous Windows."
     }
   },
   "settings": {
@@ -164,7 +182,7 @@
     "save": "Enregistrer",
     "saved": "Enregistré",
     "runInTray": "Exécuter dans la zone de notification",
-    "runInTrayDesc": "Fermer la fenêtre laisse GloriaLauncher actif dans la zone de notification. Quittez-le depuis le menu de son icône."
+    "runInTrayDesc": "Fermer la fenêtre laisse Gloria Launcher actif dans la zone de notification. Quittez-le depuis le menu de son icône."
   },
   "footer": {
     "syncing": "Synchronisation avec GitHub…",
@@ -176,7 +194,7 @@
     "installed": "installées",
     "desktopRuntime": "Version bureau",
     "webEdition": "Édition web",
-    "webTooltip": "GloriaLauncher Web (GitHub Pages)",
+    "webTooltip": "Gloria Launcher Web (GitHub Pages)",
     "githubTooltip": "@projectGloria sur GitHub",
     "themeTooltip": "Thème Gloria sur le VS Code Marketplace",
     "builtBy": "Créé par Nihil"
@@ -192,7 +210,7 @@
     "exeLinked": "Exécutable local associé à {{name}}"
   },
   "update": {
-    "available": "GloriaLauncher v{{latest}} est disponible — vous avez la v{{current}}.",
+    "available": "Gloria Launcher v{{latest}} est disponible — vous avez la v{{current}}.",
     "install": "Mettre à jour",
     "whatsNew": "Nouveautés",
     "later": "Me le rappeler plus tard",
@@ -200,7 +218,7 @@
     "failed": "Échec de la mise à jour : {{error}}"
   },
   "tray": {
-    "show": "Ouvrir GloriaLauncher",
+    "show": "Ouvrir Gloria Launcher",
     "quit": "Quitter"
   }
 }

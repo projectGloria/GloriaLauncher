@@ -66,3 +66,212 @@
     transform: rotate(-360deg);
   }
 }
+
+/* GitHub-style dark README rendering */
+.gloria-readme {
+  color: #d4d4dc;
+  font-size: 14px;
+  line-height: 1.65;
+  word-wrap: break-word;
+}
+
+.gloria-readme > *:first-child {
+  margin-top: 0;
+}
+
+.gloria-readme > *:last-child {
+  margin-bottom: 0;
+}
+
+.gloria-readme h1,
+.gloria-readme h2,
+.gloria-readme h3,
+.gloria-readme h4,
+.gloria-readme h5,
+.gloria-readme h6 {
+  color: #f4f4f6;
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.3;
+  margin-top: 1.5em;
+  margin-bottom: 0.65em;
+}
+
+.gloria-readme h1 {
+  font-size: 1.75em;
+  padding-bottom: 0.3em;
+  border-bottom: 1px solid #22222c;
+}
+
+.gloria-readme h2 {
+  font-size: 1.35em;
+  padding-bottom: 0.25em;
+  border-bottom: 1px solid #1e1e27;
+}
+
+.gloria-readme h3 {
+  font-size: 1.12em;
+}
+
+.gloria-readme h4 {
+  font-size: 1em;
+}
+
+.gloria-readme p {
+  margin-top: 0;
+  margin-bottom: 0.9em;
+}
+
+.gloria-readme p[align="center"],
+.gloria-readme div[align="center"] {
+  text-align: center;
+}
+
+.gloria-readme a {
+  color: #38bdf8;
+  text-decoration: none;
+}
+
+.gloria-readme a:hover {
+  text-decoration: underline;
+}
+
+.gloria-readme strong {
+  color: #f4f4f6;
+  font-weight: 600;
+}
+
+.gloria-readme ul,
+.gloria-readme ol {
+  margin-top: 0;
+  margin-bottom: 0.9em;
+  padding-left: 1.6em;
+}
+
+.gloria-readme ul {
+  list-style-type: disc;
+}
+
+.gloria-readme ol {
+  list-style-type: decimal;
+}
+
+.gloria-readme li + li {
+  margin-top: 0.25em;
+}
+
+.gloria-readme li > input[type="checkbox"] {
+  margin-right: 0.45em;
+  accent-color: #38bdf8;
+}
+
+.gloria-readme blockquote {
+  margin: 0 0 1em 0;
+  padding: 0.4em 1em;
+  color: #a1a1aa;
+  border-left: 3px solid #323240;
+  background: #101015;
+}
+
+.gloria-readme hr {
+  height: 1px;
+  border: 0;
+  background: #23232e;
+  margin: 1.4em 0;
+}
+
+.gloria-readme code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  padding: 0.16em 0.4em;
+  background: #16161d;
+  border: 1px solid #24242f;
+  color: #e4e4ec;
+}
+
+.gloria-readme pre {
+  margin: 0 0 1em 0;
+  padding: 0.9rem 1rem;
+  background: #0d0d12;
+  border: 1px solid #22222c;
+  overflow-x: auto;
+  line-height: 1.55;
+}
+
+.gloria-readme pre code {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  font-size: 12.5px;
+  color: #d4d4dc;
+}
+
+.gloria-readme img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.gloria-readme p img,
+.gloria-readme a img {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.gloria-readme p[align="center"] img,
+.gloria-readme div[align="center"] img {
+  margin: 0.2rem 0.15rem;
+}
+
+.gloria-readme .gloria-readme-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 0 0 1em 0;
+}
+
+.gloria-readme table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.gloria-readme th,
+.gloria-readme td {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #24242e;
+  text-align: left;
+}
+
+.gloria-readme th {
+  background: #131319;
+  color: #f4f4f6;
+  font-weight: 600;
+}
+
+.gloria-readme tr:nth-child(even) td {
+  background: #0e0e13;
+}
+
+.gloria-readme details {
+  margin-bottom: 0.9em;
+  padding: 0.6em 0.85em;
+  background: #0f0f14;
+  border: 1px solid #22222c;
+}
+
+.gloria-readme summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: #f4f4f6;
+}
+
+.gloria-readme kbd {
+  display: inline-block;
+  padding: 0.12em 0.45em;
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  color: #f4f4f6;
+  background: #181820;
+  border: 1px solid #343444;
+  box-shadow: inset 0 -1px 0 #09090d;
+}

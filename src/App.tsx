@@ -109,9 +109,10 @@ export const App: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [runInTray, setRunInTray] = useState<boolean>(() => {
     try {
-      return localStorage.getItem(RUN_IN_TRAY_STORAGE_KEY) === "1";
+      const saved = localStorage.getItem(RUN_IN_TRAY_STORAGE_KEY);
+      return saved === null ? true : saved === "1";
     } catch {
-      return false;
+      return true;
     }
   });
 
