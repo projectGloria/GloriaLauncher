@@ -1,7 +1,7 @@
 {
   "name": "gloria-launcher",
   "private": true,
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Gloria App Suite Launcher & Showcase for Web and Desktop",
   "type": "module",
   "scripts": {
