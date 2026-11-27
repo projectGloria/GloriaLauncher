@@ -171,8 +171,8 @@ export const GLORIA_CATALOG: GloriaAppEntry[] = [
   },
   {
     id: "Nyx",
-    titlePrefix: "Nyx",
-    titleAccent: "Term",
+    titlePrefix: "Ny",
+    titleAccent: "x",
     displayName: "Nyx",
     subtitle: "GPU-accelerated wgpu terminal emulator",
     tagline: "Ultra-low latency Rust terminal with binary split panes and ConPTY.",
@@ -409,8 +409,8 @@ export const GLORIA_CATALOG: GloriaAppEntry[] = [
   },
   {
     id: "LLMUsageChecker",
-    titlePrefix: "LLM",
-    titleAccent: "Quota",
+    titlePrefix: "LLMUsage",
+    titleAccent: "Checker",
     displayName: "LLMUsageChecker",
     subtitle: "Real-time AI developer quota dashboard",
     tagline: "Track session limits across Antigravity, Codex, and Claude Code.",
@@ -514,8 +514,8 @@ export const GLORIA_CATALOG: GloriaAppEntry[] = [
   },
   {
     id: "FakeGameLauncher",
-    titlePrefix: "Quest",
-    titleAccent: "Sim",
+    titlePrefix: "FakeGame",
+    titleAccent: "Launcher",
     displayName: "FakeGameLauncher",
     subtitle: "Discord game presence & quest companion",
     tagline: "Simulate game activity without downloading multi-gigabyte titles.",
@@ -536,7 +536,7 @@ export const GLORIA_CATALOG: GloriaAppEntry[] = [
   },
   {
     id: "WindowsSizeScanner",
-    titlePrefix: "Size",
+    titlePrefix: "WindowsSize",
     titleAccent: "Scanner",
     displayName: "WindowsSizeScanner",
     subtitle: "In-place folder sizes inside Windows Explorer",
@@ -557,8 +557,8 @@ export const GLORIA_CATALOG: GloriaAppEntry[] = [
   },
   {
     id: "CS2CommandBrowser",
-    titlePrefix: "CS2",
-    titleAccent: "CVars",
+    titlePrefix: "CS2Command",
+    titleAccent: "Browser",
     displayName: "CS2CommandBrowser",
     subtitle: "Offline Counter-Strike 2 cvar & command browser",
     tagline: "Inspect, search, diff, and export CS2 console variables offline.",
@@ -578,8 +578,8 @@ export const GLORIA_CATALOG: GloriaAppEntry[] = [
   },
   {
     id: "KHInsiderDownloader",
-    titlePrefix: "KH",
-    titleAccent: "Insider",
+    titlePrefix: "KHInsider",
+    titleAccent: "Downloader",
     displayName: "KHInsiderDownloader",
     subtitle: "Lossless video game soundtrack downloader",
     tagline: "High-speed FLAC & MP3 OST downloader with booklet scans.",
@@ -669,7 +669,7 @@ export const GLORIA_CATALOG: GloriaAppEntry[] = [
   {
     id: "MPVConfig",
     titlePrefix: "MPV",
-    titleAccent: "Tethys",
+    titleAccent: "Config",
     displayName: "MPVConfig",
     subtitle: "Borderless keyboard-first MPV media setup",
     tagline: "Tethys OSC controls, streaming shaders, and frame-step precision.",
@@ -714,7 +714,7 @@ export const GLORIA_CATALOG: GloriaAppEntry[] = [
   },
   {
     id: "BrowserContainers",
-    titlePrefix: "Tab",
+    titlePrefix: "Browser",
     titleAccent: "Containers",
     displayName: "BrowserContainers",
     subtitle: "Multi-account cookie & tab isolation for Chromium",
@@ -844,9 +844,9 @@ export const GLORIA_CATALOG: GloriaAppEntry[] = [
   },
   {
     id: "Whatsapp-Sticker-Maker",
-    titlePrefix: "Sticker",
-    titleAccent: "Craft",
-    displayName: "StickerCraft",
+    titlePrefix: "Whatsapp-Sticker-",
+    titleAccent: "Maker",
+    displayName: "Whatsapp-Sticker-Maker",
     subtitle: "Native Android 10+ WhatsApp sticker studio",
     tagline: "Create static and animated WebP sticker packs offline.",
     description:

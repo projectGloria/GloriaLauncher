@@ -8,7 +8,7 @@
     "launcher": "Lanceur",
     "showcase": "Catalogue & Vitrine",
     "getDesktop": "App de bureau",
-    "downloadNativeTooltip": "Télécharger Gloria Launcher pour Windows",
+    "downloadNativeTooltip": "Télécharger GloriaLauncher pour Windows",
     "githubTooltip": "Ouvrir @projectGloria sur GitHub",
     "language": "Langue",
     "settingsTooltip": "Paramètres du lanceur",
@@ -151,7 +151,7 @@
     "copyLink": "Copier le lien",
     "copiedLink": "Lien copié",
     "recommendedLabel": "Recommandé :",
-    "recommendedBody": "Gloria Launcher est une application de bureau Windows native qui installe et lance chacun des outils ci-dessous, et peut aussi être compilée pour le web.",
+    "recommendedBody": "GloriaLauncher est une application de bureau Windows native qui installe et lance chacun des outils ci-dessous, et peut aussi être compilée pour le web.",
     "lineupKicker": "02 / La gamme",
     "lineupTitle": "Choisissez un outil à explorer",
     "switchToLauncher": "Passer à la vue grille / tableau →",
@@ -166,11 +166,11 @@
       "speedTitle": "Conçu pour la vitesse",
       "speedBody": "De l'indexation directe de la MFT NTFS aux shaders wgpu en passant par les binaires Rust Tauri 2, la performance passe en premier.",
       "unifiedTitle": "Web et bureau réunis",
-      "unifiedBody": "Parcourez et lancez les outils depuis GitHub Pages dans n'importe quel navigateur, ou utilisez Gloria Launcher en natif sous Windows."
+      "unifiedBody": "Parcourez et lancez les outils depuis GitHub Pages dans n'importe quel navigateur, ou utilisez GloriaLauncher en natif sous Windows."
     }
   },
   "settings": {
-    "title": "Paramètres de Gloria Launcher",
+    "title": "Paramètres de GloriaLauncher",
     "close": "Fermer les paramètres",
     "language": "Langue de l'interface",
     "languageDesc": "Choisissez votre langue ou suivez celle de votre système.",
@@ -182,7 +182,7 @@
     "save": "Enregistrer",
     "saved": "Enregistré",
     "runInTray": "Exécuter dans la zone de notification",
-    "runInTrayDesc": "Fermer la fenêtre laisse Gloria Launcher actif dans la zone de notification. Quittez-le depuis le menu de son icône."
+    "runInTrayDesc": "Fermer la fenêtre laisse GloriaLauncher actif dans la zone de notification. Quittez-le depuis le menu de son icône."
   },
   "footer": {
     "syncing": "Synchronisation avec GitHub…",
@@ -194,7 +194,7 @@
     "installed": "installées",
     "desktopRuntime": "Version bureau",
     "webEdition": "Édition web",
-    "webTooltip": "Gloria Launcher Web (GitHub Pages)",
+    "webTooltip": "GloriaLauncher Web (GitHub Pages)",
     "githubTooltip": "@projectGloria sur GitHub",
     "themeTooltip": "Thème Gloria sur le VS Code Marketplace",
     "builtBy": "Créé par Nihil"
@@ -210,7 +210,7 @@
     "exeLinked": "Exécutable local associé à {{name}}"
   },
   "update": {
-    "available": "Gloria Launcher v{{latest}} est disponible — vous avez la v{{current}}.",
+    "available": "GloriaLauncher v{{latest}} est disponible — vous avez la v{{current}}.",
     "install": "Mettre à jour",
     "whatsNew": "Nouveautés",
     "later": "Me le rappeler plus tard",
@@ -218,7 +218,7 @@
     "failed": "Échec de la mise à jour : {{error}}"
   },
   "tray": {
-    "show": "Ouvrir Gloria Launcher",
+    "show": "Ouvrir GloriaLauncher",
     "quit": "Quitter"
   }
 }

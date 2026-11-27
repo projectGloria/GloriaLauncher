@@ -8,7 +8,7 @@
     "launcher": "Launcher",
     "showcase": "Lineup & Showcase",
     "getDesktop": "Get Desktop App",
-    "downloadNativeTooltip": "Download native Windows Gloria Launcher",
+    "downloadNativeTooltip": "Download native Windows GloriaLauncher",
     "githubTooltip": "Open @projectGloria on GitHub",
     "language": "Language",
     "settingsTooltip": "Launcher Settings",
@@ -151,7 +151,7 @@
     "copyLink": "Copy Link",
     "copiedLink": "Copied Link",
     "recommendedLabel": "Recommended:",
-    "recommendedBody": "Gloria Launcher runs as a native Windows desktop app that installs and launches every tool below, and can also be built for the web.",
+    "recommendedBody": "GloriaLauncher runs as a native Windows desktop app that installs and launches every tool below, and can also be built for the web.",
     "lineupKicker": "02 / The Lineup",
     "lineupTitle": "Pick a craft to explore",
     "switchToLauncher": "Switch to compact Grid / Table view →",
@@ -166,11 +166,11 @@
       "speedTitle": "Engineered for speed",
       "speedBody": "From direct NTFS Master File Table indexing and wgpu shaders to Tauri 2 Rust binaries, performance comes first.",
       "unifiedTitle": "Web & Desktop unified",
-      "unifiedBody": "Browse and launch tools from GitHub Pages in any browser, or run the native Gloria Launcher on Windows."
+      "unifiedBody": "Browse and launch tools from GitHub Pages in any browser, or run the native GloriaLauncher on Windows."
     }
   },
   "settings": {
-    "title": "Gloria Launcher Settings",
+    "title": "GloriaLauncher Settings",
     "close": "Close settings",
     "language": "Interface Language",
     "languageDesc": "Choose your preferred language or follow your system locale.",
@@ -182,7 +182,7 @@
     "save": "Save Settings",
     "saved": "Saved",
     "runInTray": "Run in tray",
-    "runInTrayDesc": "Closing the window keeps Gloria Launcher running in the system tray. Quit it from the tray icon's menu."
+    "runInTrayDesc": "Closing the window keeps GloriaLauncher running in the system tray. Quit it from the tray icon's menu."
   },
   "footer": {
     "syncing": "Syncing with GitHub…",
@@ -194,7 +194,7 @@
     "installed": "installed",
     "desktopRuntime": "Desktop Runtime",
     "webEdition": "Web Edition",
-    "webTooltip": "Gloria Launcher Web (GitHub Pages)",
+    "webTooltip": "GloriaLauncher Web (GitHub Pages)",
     "githubTooltip": "@projectGloria on GitHub",
     "themeTooltip": "Gloria Theme on VS Code Marketplace",
     "builtBy": "Built by Nihil"
@@ -210,7 +210,7 @@
     "exeLinked": "Linked local executable for {{name}}"
   },
   "update": {
-    "available": "Gloria Launcher v{{latest}} is available — you have v{{current}}.",
+    "available": "GloriaLauncher v{{latest}} is available — you have v{{current}}.",
     "install": "Update now",
     "whatsNew": "What's new",
     "later": "Remind me later",
@@ -218,7 +218,7 @@
     "failed": "Update failed: {{error}}"
   },
   "tray": {
-    "show": "Open Gloria Launcher",
+    "show": "Open GloriaLauncher",
     "quit": "Quit"
   }
 }

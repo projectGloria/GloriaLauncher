@@ -1,5 +1,5 @@
 id = "GloriaLauncher"
-name = "Gloria Launcher"
+name = "GloriaLauncher"
 version = "1.3.1"
 main_exe = "GloriaLauncher.exe"
 icon = "GloriaRed.ico"

@@ -8,7 +8,7 @@
     "launcher": "Başlatıcı",
     "showcase": "Katalog ve vitrin",
     "getDesktop": "Masaüstü uygulaması",
-    "downloadNativeTooltip": "Windows için yerel Gloria Launcher'ı indir",
+    "downloadNativeTooltip": "Windows için yerel GloriaLauncher'ı indir",
     "githubTooltip": "GitHub'da @projectGloria'yı aç",
     "language": "Dil",
     "settingsTooltip": "Başlatıcı ayarları",
@@ -151,7 +151,7 @@
     "copyLink": "Bağlantıyı kopyala",
     "copiedLink": "Bağlantı kopyalandı",
     "recommendedLabel": "Önerilen:",
-    "recommendedBody": "Gloria Launcher, aşağıdaki tüm araçları kuran ve başlatan yerel bir Windows masaüstü uygulamasıdır; web için de derlenebilir.",
+    "recommendedBody": "GloriaLauncher, aşağıdaki tüm araçları kuran ve başlatan yerel bir Windows masaüstü uygulamasıdır; web için de derlenebilir.",
     "lineupKicker": "02 / Koleksiyon",
     "lineupTitle": "Keşfetmek için bir araç seçin",
     "switchToLauncher": "Izgara / tablo görünümüne geç →",
@@ -166,11 +166,11 @@
       "speedTitle": "Hız için tasarlandı",
       "speedBody": "Doğrudan NTFS MFT indekslemeden wgpu gölgelendiricilerine ve Tauri 2 Rust dosyalarına kadar önce performans gelir.",
       "unifiedTitle": "Web ve masaüstü bir arada",
-      "unifiedBody": "Araçlara herhangi bir tarayıcıdan GitHub Pages üzerinden göz atıp başlatın ya da Windows'ta yerel Gloria Launcher'ı kullanın."
+      "unifiedBody": "Araçlara herhangi bir tarayıcıdan GitHub Pages üzerinden göz atıp başlatın ya da Windows'ta yerel GloriaLauncher'ı kullanın."
     }
   },
   "settings": {
-    "title": "Gloria Launcher ayarları",
+    "title": "GloriaLauncher ayarları",
     "close": "Ayarları kapat",
     "language": "Arayüz dili",
     "languageDesc": "Tercih ettiğiniz dili seçin ya da sistem dilini kullanın.",
@@ -182,7 +182,7 @@
     "save": "Ayarları kaydet",
     "saved": "Kaydedildi",
     "runInTray": "Sistem tepsisinde çalıştır",
-    "runInTrayDesc": "Pencereyi kapatınca Gloria Launcher sistem tepsisinde çalışmaya devam eder. Tepsi simgesinin menüsünden çıkabilirsiniz."
+    "runInTrayDesc": "Pencereyi kapatınca GloriaLauncher sistem tepsisinde çalışmaya devam eder. Tepsi simgesinin menüsünden çıkabilirsiniz."
   },
   "footer": {
     "syncing": "GitHub ile eşitleniyor…",
@@ -194,7 +194,7 @@
     "installed": "kurulu",
     "desktopRuntime": "Masaüstü sürümü",
     "webEdition": "Web sürümü",
-    "webTooltip": "Gloria Launcher Web (GitHub Pages)",
+    "webTooltip": "GloriaLauncher Web (GitHub Pages)",
     "githubTooltip": "GitHub'da @projectGloria",
     "themeTooltip": "VS Code Marketplace'te Gloria Theme",
     "builtBy": "Nihil tarafından geliştirildi"
@@ -210,7 +210,7 @@
     "exeLinked": "{{name}} için yerel dosya bağlandı"
   },
   "update": {
-    "available": "Gloria Launcher v{{latest}} yayında — sizdeki sürüm v{{current}}.",
+    "available": "GloriaLauncher v{{latest}} yayında — sizdeki sürüm v{{current}}.",
     "install": "Şimdi güncelle",
     "whatsNew": "Yenilikler",
     "later": "Daha sonra hatırlat",
@@ -218,7 +218,7 @@
     "failed": "Güncelleme başarısız: {{error}}"
   },
   "tray": {
-    "show": "Gloria Launcher'ı aç",
+    "show": "GloriaLauncher'ı aç",
     "quit": "Çık"
   }
 }

@@ -1294,7 +1294,7 @@ fn configure_tray(
     let menu = Menu::with_items(&app, &[&show, &quit]).map_err(|e| e.to_string())?;
 
     let mut builder = TrayIconBuilder::with_id(TRAY_ID)
-        .tooltip("Gloria Launcher")
+        .tooltip("GloriaLauncher")
         .menu(&menu)
         .show_menu_on_left_click(false)
         .on_menu_event(|app, event| match event.id().as_ref() {
